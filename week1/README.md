@@ -43,6 +43,7 @@
 
 3.4 머신러닝과 고급분석 5,6부
   - MLlib 으로 대용량 데이터 preprocessing, munging, model training, predicition 가능 
+  
  A. Transformation
    - StringIndexer (LableEncoder 같은), OneHotEncoder
    - Vector Assembly 로 Pipeline 설계 (Transformer 를 Fit 하는 과정)
