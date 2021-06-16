@@ -25,11 +25,11 @@
 
 **3. 스파크 기능 둘러보기**
 
-3.1 운영용 애플리케이션 실행
+3.1 운영용 애플리케이션 실행 - 4부
  - spark-submit 을 통해 쉽게 운영용 애플리케이션으로 전환 (제출되면 클러스터에서 실행됨) 
  - 여기에 애플리케이션 실행에 필요한 자원과 실행방식까지 지정 할 수 있다
  
-3.2 구조적 API (DataSet)
+3.2 구조적 API (DataSet) - 2부
  - DataFrame 이 다양한 형태의 데이터 타입을 저장하는 Row 타입의 객체로 구성된 분산 컬렉션이라면
  - DataSet 은 DataFrame의 데이터를 사용자가 Java나 Scala (정적 언어) 에서 지정한 클래스에 할당하고, *고정 타입형 컬렉션 으로 다룰 수 있는 기능 제공
  - 타입 안정성을 제공하기 때문에 동적언어인 Python, R 에서는 사용할 수 없고, 초기에 지정한 데이터 타입을 바꿀 수 없음
@@ -41,7 +41,7 @@
  - 구조적 API로 개발된 배치 연산을 스트리밍 방식으로 사용할 수 있으며 배치형 코드를 일부 수정하여 스트리밍 처리가 되도록 할 수 있음 (프로토타입을 배치로 잡고 스트리밍 변환도 가능)
  - 셔틀 파티션 수의 지정?? 
 
-3.4 머신러닝과 고급분석 
+3.4 머신러닝과 고급분석 5,6부
   - MLlib 으로 대용량 데이터 preprocessing, munging, model training, predicition 가능 
  A. Transformation
    - StringIndexer (LableEncoder 같은), OneHotEncoder
@@ -52,7 +52,7 @@
  C. Post-Training
   - Cost 계산
 
-3.5 저수준 API (RDD) : 
+3.5 저수준 API (RDD) - 3부
 추상화가 덜된...! 이 메모리에 이 숫자를 저장해! (underlying hardware나 software 를 만질 수 있는 자유도가 커지고 ;
   - RDD (Resilient Distributed Dataset) 스파크의 기본 데이터 구조. 
   - 분산 변경 불가능한 객체 모음이며 스파크의 모든 작업은 새로운 RDD를 만들거나 존재하는 RDD를 변형하거나 결과 계산을 위해 RDD에서 연산하는 것을 표현하고 있음 (https://bomwo.cc/posts/spark-rdd/)
@@ -64,5 +64,5 @@
 3.6 SparkR 
  - 스파크를 R 로 사용하기! 파이썬과 유사함
 
-3.7 Spark Ecosystem 
+3.7 Spark Ecosystem -7
  - spark-packages.org 
