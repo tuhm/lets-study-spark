@@ -15,7 +15,7 @@
 |Section | Summary |
 | ---- |  ---- |
 |2.6 Data Frame | - 우리가 아는 테이블 형태의 Data Frame 과 Schema (단, 보통 분산하여 저장되어 있음)<br/> - 파티션단위로 데이터를 분할해 저장함 (파티션이 하나면 병렬성 1, 파티션이 여러개라도 일을 할 익스큐터가 하나밖에 없으면 병렬성은 1) |
-|2.7 Transformation | - immutable: 한번생성하면 변경할 수 없어서(??) 변경 방법을 스파크에게 알려줘야하며 액션 하기 전까지는 수행되지 않는다!  - narrow transformation: 각 입력 파티션이 하나의 출력 파티션에만 영향을 끼침(입력 대 출력 1:1) where 절 같은 것? (Pipelining: 메모리에서만 수행) - wide transofmration: 하나의 입력 파티션이 여러 출력 파티션에 영향을 미침.(Shuffle - 디스크에 저장) - lazy evaluation: 실행 계획만 가지고 있다가 트랜스포메이션 마지막 단계에서 한꺼번에 실행하기 때문에 데이터 흐름이 최적화됨|
-| 2.8 Action | - Transformation 이 논리적 실행 계획이라면, 실제 연산은 액션을 명령해야만 일어남 - 예: count/콘솔에서 데이터 열람/ 네이티브 객체에 데이터 모으기/출력 소스에 저장 <\br> - 액션을 지정하면 스파크 잡이 시작되어 필터 (narrow transformation) 수행후 count (wide transformation 수행) |
+|2.7 Transformation | - immutable: 한번생성하면 변경할 수 없어서(??) 변경 방법을 스파크에게 알려줘야하며 액션 하기 전까지는 수행되지 않는다!<br/> - narrow transformation: 각 입력 파티션이 하나의 출력 파티션에만 영향을 끼침(입력 대 출력 1:1) where 절 같은 것? (Pipelining: 메모리에서만 수행)<br/>- wide transofmration: 하나의 입력 파티션이 여러 출력 파티션에 영향을 미침.(Shuffle - 디스크에 저장)<br/> - lazy evaluation: 실행 계획만 가지고 있다가 트랜스포메이션 마지막 단계에서 한꺼번에 실행하기 때문에 데이터 흐름이 최적화됨|
+| 2.8 Action | - Transformation 이 논리적 실행 계획이라면, 실제 연산은 액션을 명령해야만 일어남<br/> - 예: count/콘솔에서 데이터 열람/ 네이티브 객체에 데이터 모으기/출력 소스에 저장<br/>- 액션을 지정하면 스파크 잡이 시작되어 필터 (narrow transformation) 수행후 count (wide transformation 수행) |
 | 2.9 Spark UI| - Spark job 의 모니터링 용도 |
-| 2.10 예제 | - InferSchema (운영환경에서는 추론 하지 말고 엄격하게 지정해야 함): 데이터를 다 읽을 필요가 없기 때문에 lazy evaluation 수행 - Take (narrow) -> Sort (wide) 실행계획을 컴파일하며 액션 전까지는 실제로 데이터 변환이 일어나지 않는다<\br>Spark.sql 로 하나, Dataframe 에 Groupby 적용하나 스파크 상으로는 같다 |
+| 2.10 예제 | - InferSchema (운영환경에서는 추론 하지 말고 엄격하게 지정해야 함): 데이터를 다 읽을 필요가 없기 때문에 lazy evaluation 수행<br/> - Take (narrow) -> Sort (wide) 실행계획을 컴파일하며 액션 전까지는 실제로 데이터 변환이 일어나지 않는다<\br>Spark.sql 로 하나, Dataframe 에 Groupby 적용하나 스파크 상으로는 같다 |
