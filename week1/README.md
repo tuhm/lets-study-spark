@@ -1,5 +1,6 @@
 1. 아파치 스파크란?
  - 통합 컴퓨팅 엔진이며, 데이터를 병렬로 처리하는 라이브러리의 집합이다 
+ -
  A. 통합: 데이처 처리부터 머신러닝, 스트림 처리까지 일관성있는 API
  B. 컴퓨팅 엔진: 연산 (컴퓨팅) 만 하지,, 저장은 X (저장용으로 하둡 파일 시스템을가지고, 맵리듀스로 연산을 하는 하둡 프레임워크와는 다름)
  C. 라이브러리: 통합 API (스파크 SQL, MLlib,, GraphX, 스트리밍, 저장소와의 연결 커넥트 외 다양한 외부 라이브러리)
@@ -8,6 +9,7 @@
 2. 스파크 간단히 살펴보기
  - 컴퓨터가 한 대가 아니기 때문에 (클러스터) 작업을 조율하고 자원을 관리할 필요가 있음 (그래서 클러스터 매니저가 필요)
  - 유저는 클러스터 매니저에 애플리케이션을 제출 -> 클러스터 매니저가 애플리케이션 실행에 필요한 자원을 할당 -> 할당받은 클러스터에서 작업이 실행됨
+ - 
  A. Application = Driver + Executor: 드라이버가 머리 (익스큐터 프로세스의 작업과 관련된 분석, 배포, 스케줄링 역할) 하며 익스큐터는 드라이버가 시킨 작업을 수행
  B. SparkSession (드라이버 프로세스): Scala, Python, R 등 언어에 상관없이 스파크 코드의 진입점이 됨. 실제적으로는 자바 가상 머신이 돌아가므로, 스파크가 JVM 이 이해할 수 있는 언어로 바꿔준다!!
  C. Spark API (저수준의 비구조적 API 와 고수준의 구조적 API) 
@@ -25,20 +27,24 @@
 3.1 운영용 애플리케이션 실행
  - spark-submit 을 통해 쉽게 운영용 애플리케이션으로 전환 (제출되면 클러스터에서 실행됨) 
  - 여기에 애플리케이션 실행에 필요한 자원과 실행방식까지 지정 할 수 있다
-3.2 DataSet API
+3.2 구조적 API (DataSet)
  - 타입 안정성을 제공하는 API
 3.3 구조적 스트리밍
 3.4 머신러닝과 고급분석 
- - MLlib 으로 대용량 데이터 preprocessing, munging, model training, ,predicition 가능 
+  - MLlib 으로 대용량 데이터 preprocessing, munging, model training, predicition 가능 
  A. Transformation
-  - StringIndexer (LableEncoder 같은), OneHotEncoder
-  - Vector Assembly 로 Pipeline 설계 (Transformer 를 Fit 하는 과정)
-  - 캐싱하면 변환된 데이터셋 복사본을 메모리에 저장
+   - StringIndexer (LableEncoder 같은), OneHotEncoder
+   - Vector Assembly 로 Pipeline 설계 (Transformer 를 Fit 하는 과정)
+   - 캐싱하면 변환된 데이터셋 복사본을 메모리에 저장
  B. Training
   - 초기화된 모델의 세팅(Algorithm: KMeans) -> 데이터에 학습시킴 (AlgorithmModel: KmeansModel)
  C. Post-Training
   - Cost 계산
 3.5 저수준 API (RDD) 
+  - RDD (Resilient Distributed Dataset) 스파크의 기본 데이터 구조. 
+  - 분산 변경 불가능한 객체 모음이며 스파크의 모든 작업은 새로운 RDD를 만들거나 존재하는 RDD를 변형하거나 결과 계산을 위해 RDD에서 연산하는 것을 표현하고 있음 (https://bomwo.cc/posts/spark-rdd/)
+  - 하둡의 맵리듀스의 연산 방식을 극복하기 위해 
+
 3.6 SparkR 
  - 스파크를 R 로 사용하기! 파이썬과 유사함
 3.7 Spark Ecosystem 
