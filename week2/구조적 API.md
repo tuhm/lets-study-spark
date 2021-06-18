@@ -90,7 +90,10 @@
 	myRow = Row("Hello", None, 1)
 	myDf = spark.createDataFrame([myRow], myManualSchema)
 
-#### select 와 selectExpr : DataFrame에서 SQL 사용하기. selectExpr메서드는 새로운 DataFrame을 생성히는 복집한 표현식을 간단하게 만드는 도구. 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
+#### select 와 selectExpr : 
+- DataFrame에서 SQL 사용하기
+- selectExpr메서드는 새로운 DataFrame을 생성히는 복집한 표현식을 간단하게 만드는 도구
+- 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
 
 	df.select("DEST_COUNTRY_NAME").show(2)
 	df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)
@@ -141,7 +144,10 @@
 	dataFrames = df.randomSplit([0.25, 0.75], seed)
         dataFrames[0].count() > dataFrames[1].count() # False
 	
-#### 로우 합치기와 추가하기 : dataframe은 기존에 있는 곳에서 변경은 불가능하기 때문에 추가하고자하는 df와 기존 df를 합쳐야 한다 이때 통합하려는 2개의 df는 반드시 동일한 스키마와 컬럼수를 가지고 있어야 한다. DataFrame을 뷰로 만들거나 테이블로 등록하면 DataFrame 변경 작업과 관계없이 동적으로 침조할 수 있습니다.
+#### 로우 합치기와 추가하기 : 
+- dataframe은 기존에 있는 곳에서 변경은 불가능하기 때문에 추가하고자하는 df와 기존 df를 합쳐야 한다.
+- 이때 통합하려는 2개의 df는 반드시 동일한 스키마와 컬럼수를 가지고 있어야 한다. 
+- DataFrame을 뷰로 만들거나 테이블로 등록하면 DataFrame 변경 작업과 관계없이 동적으로 침조할 수 있습니다.
 	from pyspark.sql import Row
 	schema = df.schema
 	newRows = [Row("New Country", "Other Country", 5L),Row("New Country 2", "Other Country 3", 1L)]
@@ -160,7 +166,7 @@
 	df.limit(5).show()
 	df.orderBy(expr("count desc")).limit(6).show()
  
-### Repartitoion 과 calesce : Repartition은 무조건 전체 데이터를 셔플
+#### Repartitoion 과 calesce : Repartition은 무조건 전체 데이터를 셔플
 
 	df.rdd.getNumPartitions() # 1
 	df.repartition(5)
