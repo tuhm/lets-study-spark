@@ -9,10 +9,10 @@
   3. SQL 데이블과뷰
 *파케이파일 : 파케이는 데이터를 저장하는 방식(파일포멧) 중 하나. 파케이는 하둡에서 운영되는 언어, 프레임워크에 제한되지 않는 모든 프로젝트에서 사용가능한 컬럼 기반의 저장 포멧입니다. 파케이는 트위터에서 개발한 파일 포멧이며, 소스코드를 공개한 이후 아파치에서 관리
 
-이번장의 뽀인트는,
-  1. 타입형(typed)/비타입형(untyped) API의 개념과치이점
-  2. 핵심용어
-  3. 스파크가 구조적 API의 데이터 흐름을 해석하고 클러스터에서 실행하는 방식
+#### 이번장의 뽀인트는,
+1. 타입형(typed)/비타입형(untyped) API의 개념과치이점
+2. 핵심용어
+3. 스파크가 구조적 API의 데이터 흐름을 해석하고 클러스터에서 실행하는 방식
 
 #### DataFrame/Dataset/스키마
 - Dataframe과 Dataset은 잘 정의된 로우와 컬럼을 가지는 분산 데이블 형태의 컬렉션
@@ -38,11 +38,14 @@
 
 #### 구조적 API 실행 과정
 - Spark Code가 클러스터에서 실제 처리되는 과정
+-
 	1. DataFrame/Dataset/SQL을 이용해 코드를 작성
 	2. 정상적인 코드라면 스파크가 논리적 실행 계획으로 변환
 	*논리적 실행 계획 : 추상적인 트랜스포메이션만! 사용자의 다양한 표현식을 최적화된 버전으로 변환(검증 전 논리적 실행 계획), data check 
 	3. 카탈리스트 옵티마이저가 수행. Spark는 논리적 실행 계획을 물리적 실행 계획으로 변환하며 그 과정에서 추가적인 최적화를 할 수 있는지 확인
-	*물리적 실행 계획 : 논리적 실행계획을 클러스터 환경에서 실행하는 방법. 비용을 계산해서 최적의 물리적 계획 선택하는데 예를들어 물리적 속성을 고려해 지정된 조인 연산 수행에 필요한 비용을 계산하고 비교. DataFrame, Data set, SQL로 정의된 쿼리를 RDD 트랜스포메이션으로 컴파일한다.
+	*물리적 실행 계획 : 논리적 실행계획을 클러스터 환경에서 실행하는 방법. 
+	비용을 계산해서 최적의 물리적 계획 선택하는데 예를들어 물리적 속성을 고려해 지정된 조인 연산 수행에 필요한 비용을 계산하고 비교. 
+	DataFrame, Data set, SQL로 정의된 쿼리를 RDD 트랜스포메이션으로 컴파일한다.
 	4. 스파크는 클러스터에서 물리적 실행 계획(RDD 처)을 실행
         *실행 : 저수준 프로그래밍 인터페이스인 RDD를 대싱으로 모든 코드를 실행
 
@@ -95,14 +98,14 @@
 - selectExpr메서드는 새로운 DataFrame을 생성히는 복집한 표현식을 간단하게 만드는 도구
 - 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
 
-	df.select("DEST_COUNTRY_NAME").show(2)
-	df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)
-	from pyspark.sql.functions import expr, col, column
-	df.select(expr("DEST_COUNTRY_NAME"),col("DEST_COUNTRY_NAME"),column("DEST_COUNTRY_NAME"))
-	df.select(expr("DEST_COUNTRY_NAME AS destination")).show(2)
-	df.select(expr("DEST_COUNTRY_NAME as destination").alias("DEST_COUNTRY_NAME"))
-	df.selectExpr("DEST_COUNTRY_NAME as newColumnName", "DEST_COUNTRY_NAME").show(2)	
-	df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
+		df.select("DEST_COUNTRY_NAME").show(2)
+		df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)
+		from pyspark.sql.functions import expr, col, column
+		df.select(expr("DEST_COUNTRY_NAME"),col("DEST_COUNTRY_NAME"),column("DEST_COUNTRY_NAME"))
+		df.select(expr("DEST_COUNTRY_NAME AS destination")).show(2)
+		df.select(expr("DEST_COUNTRY_NAME as destination").alias("DEST_COUNTRY_NAME"))
+		df.selectExpr("DEST_COUNTRY_NAME as newColumnName", "DEST_COUNTRY_NAME").show(2)	
+		df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
 
 #### 스파크 데이터 타입 변환 : 명시적인 값을 스파크에 전달해야 할 때, 리터럴을 사용하게 되는데 리터럴은 프로그래밍언어의 리터럴값을 스파크가 이해 할 수 있는 값으로 변환합니다.
 	from pyspark.sql.functions import lit
@@ -148,12 +151,13 @@
 - dataframe은 기존에 있는 곳에서 변경은 불가능하기 때문에 추가하고자하는 df와 기존 df를 합쳐야 한다.
 - 이때 통합하려는 2개의 df는 반드시 동일한 스키마와 컬럼수를 가지고 있어야 한다. 
 - DataFrame을 뷰로 만들거나 테이블로 등록하면 DataFrame 변경 작업과 관계없이 동적으로 침조할 수 있습니다.
-	from pyspark.sql import Row
-	schema = df.schema
-	newRows = [Row("New Country", "Other Country", 5L),Row("New Country 2", "Other Country 3", 1L)]
-	parallelizedRows = spark.sparkContext.parallelize(newRows)
-	newDF = spark.createDataFrame(parallelizedRows, schema)
-	df.union(newDF).where("count = 1").where(col("ORIGIN_COUNTRY_NAME") != "United States").show()
+	
+		from pyspark.sql import Row
+		schema = df.schema
+		newRows = [Row("New Country", "Other Country", 5L),Row("New Country 2", "Other Country 3", 1L)]
+		parallelizedRows = spark.sparkContext.parallelize(newRows)
+		newDF = spark.createDataFrame(parallelizedRows, schema)
+		df.union(newDF).where("count = 1").where(col("ORIGIN_COUNTRY_NAME") != "United States").show()
 
 #### 로우 정렬하기  : sort, order by 메서드 이용. 기본은 오름차순
 	df.sort("count").show(5)
@@ -174,7 +178,7 @@
 	df.repartition(5, col("DEST_COUNTRY_NAME")) #선택적 파티션 수 지정 
 	df.repartition(5, col("DEST_COUNTRY_NAME")).coalesce(2) # Coalesce 메서드는 전체 데이터를 셔플히지 않고 파티션을 병힘하려는 경우에 시용힘니다 -> 다음은 목적지를 기준으로 셔플을 수행해 5개의 파티션으로 니누고, 전체 데이터를 셔플 없이 병합?
 
-### 드라이버로 로우 데이터수집하기 : 스파크는 드라이버에서 클러스터 상태를 유지. 로컬 환경에서 데이터를 다루려면 드라이버로 데이터를 수집
+#### 드라이버로 로우 데이터수집하기 : 스파크는 드라이버에서 클러스터 상태를 유지. 로컬 환경에서 데이터를 다루려면 드라이버로 데이터를 수집
 
 	1.collect : 전체 DataFrame의 모든 데이터를 수집하기
 	2.take : 상위 N개의 로우를 빈환합니다
