@@ -90,120 +90,94 @@
 	myRow = Row("Hello", None, 1)
 	myDf = spark.createDataFrame([myRow], myManualSchema)
 
-#### select 와 selectExpr : DataFrame에서 SQL 사용하기. selectExpr 메서드는 새로운 DataFrame을 생성히는 복집한 표현식을 간단하게 만드는 도구입니다. 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
+#### select 와 selectExpr : DataFrame에서 SQL 사용하기. selectExpr메서드는 새로운 DataFrame을 생성히는 복집한 표현식을 간단하게 만드는 도구. 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
 
-df.select("DEST_COUNTRY_NAME").show(2)
-df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)
-from pyspark.sql.functions import expr, col, column
-df.select(
-    expr("DEST_COUNTRY_NAME"),
-    col("DEST_COUNTRY_NAME"),
-    column("DEST_COUNTRY_NAME"))\
-  .show(2)
-df.select(expr("DEST_COUNTRY_NAME AS destination")).show(2)
-df.select(expr("DEST_COUNTRY_NAME as destination").alias("DEST_COUNTRY_NAME"))\
-  .show(2)
-df.selectExpr("DEST_COUNTRY_NAME as newColumnName", "DEST_COUNTRY_NAME").show(2)
-df.selectExpr(
-  "*", # all original columns
-  "(DEST_COUNTRY_NAME = ORIGIN_COUNTRY_NAME) as withinCountry")\
-  .show(2)
-df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
+	df.select("DEST_COUNTRY_NAME").show(2)
+	df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)
+	from pyspark.sql.functions import expr, col, column
+	df.select(expr("DEST_COUNTRY_NAME"),col("DEST_COUNTRY_NAME"),column("DEST_COUNTRY_NAME"))
+	df.select(expr("DEST_COUNTRY_NAME AS destination")).show(2)
+	df.select(expr("DEST_COUNTRY_NAME as destination").alias("DEST_COUNTRY_NAME"))
+	df.selectExpr("DEST_COUNTRY_NAME as newColumnName", "DEST_COUNTRY_NAME").show(2)	
+	df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
 
 #### 스파크 데이터 타입 변환 : 명시적인 값을 스파크에 전달해야 할 때, 리터럴을 사용하게 되는데 리터럴은 프로그래밍언어의 리터럴값을 스파크가 이해 할 수 있는 값으로 변환합니다.
-from pyspark.sql.functions import lit
-df.select(expr("*"), lit(1).alias("One")).show(2)
-	* 
-#### 컬럼추가하기 : 식적인 방법은 D겐t겐Fr겐me의 withColumn 메서드를 시용히는 겁니다
-	* 
-#### 컬럼명 변경하기 : withColumnRenamed 사용
-df.withColumnRenamed("DEST_COUNTRY_NAME", "dest").columns  (이전, 변경)
-공백이나 하이픈은 컬럼며에 사용이 불가합니다. 사용하려면 백틱 (') 이용
-	* 
-대소문자 구분하지 x
-	* 
-컬럼제거 : df.drop(''0RI61NCOUNTRY빼AME',).columns / dfWithLongCoIName.drop(,'0RIGIN COUNTRY NAME.', '.DE5T COUNTRY NAME'')
-	* 
-컬럼 데이터 타입 변경 : cast 메서드 사용
-df . withColumn( ''count2.' , col ( ''count.' ) . cast ( '' string‘' ) )   (int -> stirng)
+	from pyspark.sql.functions import lit
+	df.select(expr("*"), lit(1).alias("One")).show(2)
+	
+#### 컬럼추가하기 : 공식적인 방법은 DataFrame withColumn 메서드를 시용히는 겁니다
+	df.withColumn("numberOne", lit(1)).show(2)
+	df.withColumn("withinCountry", expr("ORIGIN_COUNTRY_NAME == DEST_COUNTRY_NAME")).show(2)
 
-#### 로우 필터링하기 : 참과 거짓 판별하는 표현식을 만들어 사용/ where 메서드,filter 메서드 사용
-df.filter(col("count'') < 2).5how(2)
-df.Where(''count < 2'').show(2)
--- 5QL
-SELECT * FROM dfTable WHERE count < 2 LIMIT 2
-	* 
+#### 컬럼명 변경하기 : withColumnRenamed 사용
+	df.withColumnRenamed("DEST_COUNTRY_NAME", "dest").columns  (이전, 변경)
+	*공백이나 하이픈은 컬럼며에 사용이 불가합니다. 사용하려면 백틱 (') 이용
+	*대소문자 구분하지 x
+	
+#### 컬럼제거
+	df.drop(''0RI61NCOUNTRY빼AME',).columns
+	dfWithLongCoIName.drop(,'0RIGIN COUNTRY NAME.', '.DE5T COUNTRY NAME'')
+	
+#### 컬럼 데이터 타입 변경 : cast 메서드 사용
+	df.withColumn( ''count2.' , col ( ''count.' ) . cast ( '' string‘' ) )   (int -> stirng)
+
+#### 로우 필터링하기 : 참과 거짓 판별하는 표현식을 만들어 사용/ where 메서드, filter 메서드 사용
+	df.filter(col("count'') < 2).5how(2)
+	df.Where(''count < 2'').show(2)
 
 #### 고유한 로우 얻기 : 중복제거 된 로우 얻기. distinct 이용.
-df.select("ORIGIN_COUNTRY_NAME", "DEST_COUNTRY_NAME").distinct().count()
-df.select("ORIGIN_COUNTRY_NAME").distinct().count()
+	df.select("ORIGIN_COUNTRY_NAME", "DEST_COUNTRY_NAME").distinct().count()
+	df.select("ORIGIN_COUNTRY_NAME").distinct().count()
 	* 
 #### 무작위 샘플 만들기 : sample 메서드 이용
-#seed
+	seed = 5
+	###복원추출/비복원추출
+	withReplacement = False
+	###표본비율
+	fraction = 0.5
+	print(df.sample(withReplacement, fraction, seed).count())
 
-
-seed = 5
-### 복원추출/비복원추출
-withReplacement = False
-### 표본비율
-fraction = 0.5
-print(df.sample(withReplacement, fraction, seed).count())
-
-	* 
 #### 임의 분할하기 : data split 할 때 사용
-dataFrames = df.randomSplit([0.25, 0.75], seed)
-
-
+	dataFrames = df.randomSplit([0.25, 0.75], seed)
         dataFrames[0].count() > dataFrames[1].count() # False
-	* 
-#### 로우 합치기와 추가하기 : dataframe은 기존에 있는 곳에서 변경은 불가능하기 때문에 추가하고자하는 df와 기존 df를 합쳐야 한다 이때 통합하려는 두ㅐㄱ의 df는 반드시 동일한 스키마와 컬럼수를 가지고 있어야 한다 
-DataFrame을 뷰로 만들거나 테이블로 등록하면 DataFrame 변경 작업과 관계없이 동적으로 침조할 수 있습니다.
-	* 
+	
+#### 로우 합치기와 추가하기 : dataframe은 기존에 있는 곳에서 변경은 불가능하기 때문에 추가하고자하는 df와 기존 df를 합쳐야 한다 이때 통합하려는 2개의 df는 반드시 동일한 스키마와 컬럼수를 가지고 있어야 한다. DataFrame을 뷰로 만들거나 테이블로 등록하면 DataFrame 변경 작업과 관계없이 동적으로 침조할 수 있습니다.
+	from pyspark.sql import Row
+	schema = df.schema
+	newRows = [Row("New Country", "Other Country", 5L),Row("New Country 2", "Other Country 3", 1L)]
+	parallelizedRows = spark.sparkContext.parallelize(newRows)
+	newDF = spark.createDataFrame(parallelizedRows, schema)
+	df.union(newDF).where("count = 1").where(col("ORIGIN_COUNTRY_NAME") != "United States").show()
+
 #### 로우 정렬하기  : sort, order by 메서드 이용. 기본은 오름차순
-df.sort("count").show(5)
-df.orderBy("count", "DEST_COUNTRY_NAME").show(5)
-df.orderBy(expr("count desc")).show(2)
-*파티션 정렬 : sortWithinPartitions
-spark.read.format("json").load("/data/flight-data/json/*-summary.json").sortWithinPartitions("count")
-	* 
+	df.sort("count").show(5)
+	df.orderBy("count", "DEST_COUNTRY_NAME").show(5)
+	df.orderBy(expr("count desc")).show(2)
+	*파티션 정렬 : sortWithinPartitions
+	spark.read.format("json").load("/data/flight-data/json/*-summary.json").sortWithinPartitions("count")
+	
 #### 로우수 제한 : limit 메서드
-df.limit(5).show()
-df.orderBy(expr("count desc")).limit(6).show()
+	df.limit(5).show()
+	df.orderBy(expr("count desc")).limit(6).show()
+ 
+### Repartitoion 과 calesce : Repartition은 무조건 전체 데이터를 셔플
 
+	df.rdd.getNumPartitions() # 1
+	df.repartition(5)
+	df.repartition(col("DEST_COUNTRY_NAME"))  #자주 필터링 되는 컬럼을 기준으로 파티션 재분배
+	df.repartition(5, col("DEST_COUNTRY_NAME")) #선택적 파티션 수 지정 
+	df.repartition(5, col("DEST_COUNTRY_NAME")).coalesce(2) # Coalesce 메서드는 전체 데이터를 셔플히지 않고 파티션을 병힘하려는 경우에 시용힘니다 -> 다음은 목적지를 기준으로 셔플을 수행해 5개의 파티션으로 니누고, 전체 데이터를 셔플 없이 병합?
 
+### 드라이버로 로우 데이터수집하기 : 스파크는 드라이버에서 클러스터 상태를 유지. 로컬 환경에서 데이터를 다루려면 드라이버로 데이터를 수집
 
-	* 
-Repartitoion 과 calesce
+	1.collect : 전체 DataFrame의 모든 데이터를 수집하기
+	2.take : 상위 N개의 로우를 빈환합니다
+	3.show : 여러 로우를 보기 좋게 출력
+	4.toLocallterator : 이터레이터ite폐tor(반복자)로 모든 파티션의 데이터를 드래I버에 전딜힘. toLocallterator 메서드를 사용해 데이터셋의 파티션을 차례로 반복 처리
 
-		* 
-Repartition : 무조건 전체 데이터를 셔플
-
-
-df.rdd.getNumPartitions() # 1
-df.repartition(5)
-df.repartition(col("DEST_COUNTRY_NAME"))  #자주 필터링 되는 컬럼을 기준으로 파티션 재분배
-df.repartition(5, col("DEST_COUNTRY_NAME")) #선택적 파티션 수 지정 
-df.repartition(5, col("DEST_COUNTRY_NAME")).coalesce(2) # Coalesce 메서드는 전체 데이터를 셔플히지 않고 파티션을 병힘하려는 경우에 시용힘니다 -> 다음은 목적지를 기준으로 셔플을 수행해 5개의 파티션으로 니누고, 전체 데이터를 셔플 없이 병합?
-
-	* 
-드라이버로 로우 데이터수집하기 : 스파크는 드라이버에서 클러스터 상태를 유지. 로컬 환경에서 데이터를 다루려면 드라이버로 데이터를 수집
-
-		* 
-collect : 전체 DataFrame의 모든 데이터를 수집하
-		* 
-take : 상위 N개의 로우를 빈환합니다
-		* 
-show : 여러 로우를 보기 좋게 출력
-		* 
-toLocallterator : 이터레이터ite폐tor(반복자)로 모든 파티션의 데이터를 드래I버에 전딜힘. toLocallterator 메서드를 사용해 데이터셋의 파티션을 차례로 반복 처리
-
-
-
-collectDF = df.limit(10)
-collectDF.take(5) # take works with an Integer count
-collectDF.show() # this prints it out nicely
-collectDF.show(5, False)
-collectDF.collect()
-
-
+		collectDF = df.limit(10)
+		collectDF.take(5) # take works with an Integer count
+		collectDF.show() # this prints it out nicely
+		collectDF.show(5, False)
+		collectDF.collect()
 
