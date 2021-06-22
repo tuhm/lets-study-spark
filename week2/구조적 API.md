@@ -65,27 +65,36 @@
 	1.스키마 확인 
 	print(spark.read.format("json").load("/user/fp10186/2015-summary.csv").schema)
 	2.스키마 생성 : 직접생성, 데이터 소스에서 얻기. 여러개의 StructField 타입 필드로 구성된 StructType 객체.
-	from pyspark.sql.types import StructField, StructType, StringType, LongType		
+	from pyspark.sql.types import StructField, StructType, StringType, LongType
+	*StructField (이름 data type, null이 가능한지)
 	myManualSchema = StructType([
 	StructField("DEST_COUNTRY_NAME", StringType(), True),
 	StructField("ORIGIN_COUNTRY_NAME", StringType(), True),
 	StructField("count", LongType(), False, metadata={"hello":"world"})])
 	df = spark.read.format("json").schema(myManualSchema).load("/user/fp10186/2015-summary.csv")
 
-#### 컬럼 : 사용자는 표현식으로 DataFrame의 컬럼을 선택, 조작, 제거 가능. 컬럼 내용을 수정하려면 반드시 DataFrame의 스피크 트랜스포메이션을 사용.
+#### 컬럼 : 사용자는 "표현식"으로 DataFrame의 컬럼을 선택, 조작, 제거 가능. 컬럼 내용을 수정하려면 반드시 DataFrame의 스피크 트랜스포메이션을 사용.
 
 	1.컬럼 생성 : col
 	from pyspark.sql.functions import col, column
 	col("someColumnName")
 	print(column("someColumnName"))
 	
-	2.표현식 : DatatFrame 레코드의 여러 값에 대한 트랜스포메이션 집합을 의미. 표현식을 사용해서 컬럼을 select, control, remove 할 수 있다.
-	단일 값을 만들기 위해 다양한 표현식을 각 레코드에 적용하는 함수. 표현식은 "expr" 함수로 가장 간단히 사용할 수 있습니다.
-	**핵심내용 : 컬럼은 단지 '표현식'일 뿐입니다. 컬럼과 컬럼의 트랜스포메이션은 파싱된 표현식과 동일한 논리적 실행 계획으로 컴파일됩니댜
+	2.표현식 : DatatFrame레코드의 여러값에 대한 transformation 집합을 의미. expr("someCol")은 col("someCol")과 동일. 
+	단일값을 만들기 위해 다양한 표현식을 각 레코드에 적용하는 함수. 표현식은 "expr" 함수로 가장 간단히 사용할 수 있습니다.
+	표현식을 사용해서 컬럼을 select, control, remove 할 수 있다.
+	**핵심내용 : 컬럼은 단지 '표현식'일 뿐. 컬럼과 컬럼의 트랜스포메이션은 파싱된 표현식과 동일한 논리적 실행 계획으로 컴파일됩니댜
 	
 #### 레코드와 로우 : 스파크에서 DataFrame의 각 로우는 하나의 레코드. 동일한것. 여기서는 로우 사용
 
 	1.로우에 접근하기 : print(myRow[2]) 로우 컬럼 추가, 제거, 로우를 컬럼으로 변환하거나 그 반대로 변환, 컬럼 값을 기준으로 로우 순서 변경
+	import org.apache.spark.sql.Row
+	val myRow = Row("Hello, null, 1, false)			
+	// 데이터에 접근하는 방법
+	myRow(0)  // Any type
+	myRow(0).asInstanceOf[String]  // String type
+	myRow.getString(0)  // String type
+	myRow.getInt(2)  // Int type
 	 
 #### DataFrame 생성하기
 
@@ -100,7 +109,7 @@
 	myRow = Row("Hello", None, 1)
 	myDf = spark.createDataFrame([myRow], myManualSchema)
 
-#### select 와 selectExpr 
+#### select 와 selectExpr (select + expr) 
 - DataFrame에서 SQL 사용하기
 - selectExpr메서드는 새로운 DataFrame을 생성하는 복집한 표현식을 간단하게 만드는 도구
 - 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
@@ -114,11 +123,11 @@
 		df.selectExpr("DEST_COUNTRY_NAME as newColumnName", "DEST_COUNTRY_NAME").show(2)	
 		df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
 
-#### 스파크 데이터 타입 변환 : 명시적인 값을 스파크에 전달해야 할 때, 리터럴을 사용하게 되는데 리터럴은 프로그래밍언어의 리터럴값을 스파크가 이해 할 수 있는 값으로 변환합니다.
+#### 스파크 데이터 타입 변환 : 명시적인 값을 스파크에 전달해야 할 때, 리터럴(literal)을 사용. 리터럴은 프로그래밍언어의 Return값을 스파크가 이해 할 수 있는 값으로 변환합니다.
 	from pyspark.sql.functions import lit
 	df.select(expr("*"), lit(1).alias("One")).show(2)
 	
-#### 컬럼추가하기 : 공식적인 방법은 DataFrame withColumn 메서드를 시용히는 겁니다
+#### 컬럼추가하기 : 공식적인 방법은 DataFrame withColumn 메서드를 시용. 컬럼명 변경도 가능.
 	df.withColumn("numberOne", lit(1)).show(2)
 	df.withColumn("withinCountry", expr("ORIGIN_COUNTRY_NAME == DEST_COUNTRY_NAME")).show(2)
 
@@ -127,7 +136,7 @@
 	*공백이나 하이픈은 컬럼며에 사용이 불가합니다. 사용하려면 백틱 (') 이용
 	*대소문자 구분하지 x
 	
-#### 컬럼제거
+#### 컬럼제거 : drop
 	df.drop(''0RI61NCOUNTRY빼AME',).columns
 	dfWithLongCoIName.drop(,'0RIGIN COUNTRY NAME.', '.DE5T COUNTRY NAME'')
 	
