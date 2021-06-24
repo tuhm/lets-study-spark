@@ -34,7 +34,6 @@
 
 - 컬럼의 개념 : 정수,문자열 - 단순 데이터 타입 / 배열, 맵 - 복합 데이터 타입 (5장에서 자세히 다룰 예정)
 - 로우의 개념 : 데이터 레코드
-- Spark Data Type : Spark Data type을 Python에서 시용하려면 다음과 같은 코드를 사용
 - 특정 Data type의 컬럼을 초기화 하는 방법
 // from pyspark.sql.types import *
 // b = ByteType()
@@ -44,14 +43,11 @@
 
 	1. DataFrame/Dataset/SQL을 이용해 코드를 작성
 	2. 정상적인 코드라면 스파크가 논리적 실행 계획으로 변환
-	*논리적 실행 계획 : 추상적인 트랜스포메이션만! 실행계획을 검증하지 않은 상태! 
-	 사용자의 다양한 표현식을 최적화된 버전으로 변환(검증 전 논리적 실행 계획), 코드유형, 테이블, 컬럼 존재 data check
-	*사용자 코드 -> 검증전 논리적 실행계획 -> 카탈로그 분석 -> 검증된 논리적 실행계획 -> 논리적 최적화 -> 최적화된 논리적 실행계획
+*논리적 실행 계획 : 추상적인 트랜스포메이션만! 실행계획을 검증하지 않은 상태! 사용자의 다양한 표현식을 최적화된 버전으로 변환(검증 전 논리적 실행 계획), 코드유형, 테이블, 컬럼 존재 data check
+*사용자 코드 -> 검증전 논리적 실행계획 -> 카탈로그 분석 -> 검증된 논리적 실행계획 -> 논리적 최적화 -> 최적화된 논리적 실행계획
 	3. 카탈리스트 옵티마이저가 수행. Spark는 논리적 실행 계획을 물리적 실행 계획으로 변환하며 그 과정에서 추가적인 최적화를 할 수 있는지 확인
-	*카탈리스트 옵티마이저 : 조건절 푸쉬다운이나 선택절 구문을 이용하여 논리적 실행계획을 최적화 시키는 규칙모음
-	*물리적 실행 계획 : 논리적 실행계획을 클러스터 환경에서 실행하는 방법. 
-	비용을 계산해서 최적의 물리적 계획 선택하는데 예를들어 물리적 속성을 고려해 지정된 조인 연산 수행에 필요한 비용을 계산하고 비교. 
-	DataFrame, Data set, SQL로 정의된 쿼리를 RDD 트랜스포메이션으로 컴파일한다. 스파크를 컴파일러라고 불리우기도 한다
+*카탈리스트 옵티마이저 : 조건절 푸쉬다운이나 선택절 구문을 이용하여 논리적 실행계획을 최적화 시키는 규칙모음
+*물리적 실행 계획 : 논리적 실행계획을 클러스터 환경에서 실행하는 방법. 비용을 계산해서 최적의 물리적 계획 선택하는데 예를들어 물리적 속성을 고려해 지정된 조인 연산 수행에 필요한 비용을 계산하고 비교. DataFrame, Data set, SQL로 정의된 쿼리를 RDD 트랜스포메이션으로 컴파일한다. 스파크를 컴파일러라고 불리우기도 한다
 	4. 스파크는 클러스터에서 물리적 실행 계획(RDD 대상)을 실행
         *실행 : 저수준 프로그래밍 인터페이스인 RDD를 대싱으로 모든 코드를 실행
 
@@ -67,11 +63,17 @@
 	2.스키마 생성 : 직접생성, 데이터 소스에서 얻기. 여러개의 StructField 타입 필드로 구성된 StructType 객체.
 	from pyspark.sql.types import StructField, StructType, StringType, LongType
 	*StructField (이름 data type, null이 가능한지)
+	
 	myManualSchema = StructType([
 	StructField("DEST_COUNTRY_NAME", StringType(), True),
 	StructField("ORIGIN_COUNTRY_NAME", StringType(), True),
 	StructField("count", LongType(), False, metadata={"hello":"world"})])
 	df = spark.read.format("json").schema(myManualSchema).load("/user/fp10186/2015-summary.csv")
+
+	ex. metadata 예시 - 데이터 위치, 파티션 정보, Description 보유
+	customSchema = StructType([
+  	StructField("cat_id", IntegerType(), True, {'description': "Unique id, primary key"}),
+  	StructField("cat_title", StringType(), True, {'description': "Name of the category, with underscores"}) ])
 
 #### 컬럼 : 사용자는 "표현식"으로 DataFrame의 컬럼을 선택, 조작, 제거 가능. 컬럼 내용을 수정하려면 반드시 DataFrame의 스피크 트랜스포메이션을 사용.
 
@@ -99,7 +101,7 @@
 #### DataFrame 생성하기
 
 	1.data 소스 이용 : 
-	df = spark.read.format("json").load("/user/fp10186/2015-summary.csv")
+	df = spark.read.format("csv").load("/user/fp10186/2015-summary.csv")
 	df.createOrReplaceTempView("dfTable")
 		
 	2.Row 객체를 가진 seq타입을 직접 변환해 DataFrame을 생성
@@ -113,6 +115,8 @@
 - DataFrame에서 SQL 사용하기
 - selectExpr메서드는 새로운 DataFrame을 생성하는 복집한 표현식을 간단하게 만드는 도구
 - 사실 모든 유효한 비집계형 SQL 구문을 지정할 수 있습니다. 단, 컬럼을 식별 할수 있어야 한다.
+- Select 와 selectExpr 차이점 : Spark SQL function selectExpr() is similar to select(), the difference being it takes a set of SQL expressions in a string to execute. This gives an ability to run SQL like expressions without creating a temporary table and views.
+- selectExpr() just has one signature that takes SQL expression in a String and returns a new DataFrame. Note like select() it doesn’t have a signature to take Column type and Dataset return type.
 
 		df.select("DEST_COUNTRY_NAME").show(2)
 		df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)		
@@ -126,6 +130,9 @@
 #### 스파크 데이터 타입 변환 : 명시적인 값을 스파크에 전달해야 할 때, 리터럴(literal)을 사용. 리터럴은 프로그래밍언어의 Return값을 스파크가 이해 할 수 있는 값으로 변환합니다.
 	from pyspark.sql.functions import lit
 	df.select(expr("*"), lit(1).alias("One")).show(2)
+	
+	EX.
+	df.withColumn("spanish_hi", lit("hola")).show()
 	
 #### 컬럼추가하기 : 공식적인 방법은 DataFrame withColumn 메서드를 시용. 컬럼명 변경도 가능.
 	df.withColumn("numberOne", lit(1)).show(2)
@@ -141,11 +148,14 @@
 	dfWithLongCoIName.drop(,'0RIGIN COUNTRY NAME.', '.DE5T COUNTRY NAME'')
 	
 #### 컬럼 데이터 타입 변경 : cast 메서드 사용
-	df.withColumn( ''count2.' , col ( ''count.' ) . cast ( '' string‘' ) )   (int -> stirng)
+	df.withColumn( 'count' , col('count').cast ( "string" ) )   (int -> stirng)
+	import pyspark.sql.functions as f
+	for column in null_columns:
+    		df = df.withColumn(column, f.col(column).cast("string"))
 
 #### 로우 필터링하기 : 참과 거짓 판별하는 표현식을 만들어 사용. where 메서드, filter 메서드 사용
-	df.filter(col("count'') < 2).5how(2)
-	df.Where(''count < 2'').show(2)
+	df.filter(col("count") < 2).5how(2)
+	df.Where("count < 2").show(2)
 
 #### 고유한 로우 얻기 : 중복제거 된 로우 얻기. distinct 이용.
 	df.select("ORIGIN_COUNTRY_NAME", "DEST_COUNTRY_NAME").distinct().count()
@@ -178,7 +188,12 @@
 #### 로우 정렬하기  : sort, order by 메서드 이용. 기본은 오름차순
 	df.sort("count").show(5)
 	df.orderBy("count", "DEST_COUNTRY_NAME").show(5)
-	df.orderBy(expr("count desc")).show(2)
+	df.orderBy(expr("count desc")).show(2) ==> 이것은 expr(count as desc) 로 인식 해서 count 라는 컬럼이 오름차순으로 자동 정렬
+	-> 제대로 수행하려면 
+	(1) df.orderBy(col("count").desc()).show(3)
+	(2) import pyspark.sql.functions as f
+	f.expr("count desc")
+
 	*파티션 정렬 : sortWithinPartitions
 	spark.read.format("json").load("/data/flight-data/json/*-summary.json").sortWithinPartitions("count")
 	
@@ -192,14 +207,14 @@
 	df.repartition(5)
 	df.repartition(col("DEST_COUNTRY_NAME"))  #자주 필터링 되는 컬럼을 기준으로 파티션 재분배
 	df.repartition(5, col("DEST_COUNTRY_NAME")) #선택적 파티션 수 지정 
-	df.repartition(5, col("DEST_COUNTRY_NAME")).coalesce(2) # Coalesce 메서드는 전체 데이터를 셔플히지 않고 파티션을 병힘하려는 경우에 시용힘니다 -> 다음은 목적지를 기준으로 셔플을 수행해 5개의 파티션으로 니누고, 전체 데이터를 셔플 없이 병합?
+	df.repartition(5, col("DEST_COUNTRY_NAME")).coalesce(2) # Coalesce 메서드는 전체 데이터를 셔플하지 않고 파티션을 병합하려는 경우에 시용합니다 -> 다음은 목적지를 기준으로 셔플을 수행해 5개의 파티션으로 니누고, 전체 데이터를 셔플 없이 병합
 
 #### 드라이버로 로우 데이터수집하기 : 스파크는 드라이버에서 클러스터 상태를 유지. 로컬 환경에서 데이터를 다루려면 드라이버로 데이터를 수집
 
 	1.collect : 전체 DataFrame의 모든 데이터를 수집하기
 	2.take : 상위 N개의 로우를 빈환합니다
 	3.show : 여러 로우를 보기 좋게 출력
-	4.toLocallterator : 이터레이터ite폐tor(반복자)로 모든 파티션의 데이터를 드래I버에 전딜힘. toLocallterator 메서드를 사용해 데이터셋의 파티션을 차례로 반복 처리
+	4.toLocallterator : Iterator(반복자)로 모든 파티션의 데이터를 드라이버에 전달함. toLocallterator 메서드를 사용해 데이터셋의 파티션을 차례로 반복 처리
 
 		collectDF = df.limit(10)
 		collectDF.take(5) # take works with an Integer count
