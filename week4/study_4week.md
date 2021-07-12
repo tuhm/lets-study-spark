@@ -24,7 +24,14 @@
 #### NOTE :어떤 결과를  만들지  정확히 판단해야 함.  정확한 답을 얻기 위해서는  연산  비용이 크므로  정확도에  맞춰 근사치를  계산하는 것이  더  효율적임.  spark에서는 근사치  계산용 함수를  사용해 스파크 잡의 실행과  속를  개선할 수 있음 
 
 ``` 
-코드  1
+df = spark.read.format("csv")\
+  .option("header", "true")\
+  .option("inferSchema", "true")\
+  .load("/data/retail-data/all/*.csv")\
+  .coalesce(5)
+df.cache()
+df.createOrReplaceTempView("dfTable")
+
 
 ``` 
 
@@ -43,7 +50,9 @@ df.count() == 541909
 - count(*) 구문을  사용하면 null값을 가진  로우를 포함해  카운트
 - 특정 컬럼 지정 시 null  값을  카운트 하지  않음 
 ``` 
-코드  1
+from pyspark.sql.functions import count
+df.select(count("StockCode")).show() # 541909
+
 
 ```
 
@@ -53,7 +62,8 @@ df.count() == 541909
 - 개별  컬럼을 처리하는 데  더  적합 
 
 ``` 
-코드  1
+from pyspark.sql.functions import countDistinct
+df.select(countDistinct("StockCode")).show() # 4070
 
 ```
 #### approx_count_distinct 
@@ -61,31 +71,38 @@ df.count() == 541909
 - 최대 추정  오류율  파라미터 사용  :  큰  오류율일수록 더  빠르게  결과를  반환  
 - 대규모  데이터셋을  사용할 때 훨씬 효율적임
 ``` 
-코드  1
+from pyspark.sql.functions import approx_count_distinct
+df.select(approx_count_distinct("StockCode", 0.1)).show() # 3364
 
 ```
 #### fisrt와  last 
 - DataFrame의 첫번째  값이나 마지막  값을 얻을  때  사용하며, DataFrame의  값이  아닌 로우를  기반으로  동작 
 ``` 
-코드  1
+from pyspark.sql.functions import first, last
+df.select(first("StockCode"), last("StockCode")).show()
+
 
 ```
 #### min과  max 
 - 최소값과  최댓값  추출
 ``` 
-코드  1
+from pyspark.sql.functions import min, max
+df.select(min("Quantity"), max("Quantity")).show()
+
 
 ```
 #### sum
 - 특정  컬럼의  모든  값  합산
 ``` 
-코드  1
+from pyspark.sql.functions import sum
+df.select(sum("Quantity")).show() # 5176450
 
 ```
 #### sumDistinct
 - 특정   컬럼의  고윳값 합산
 ``` 
-코드  1
+from pyspark.sql.functions import sumDistinct
+df.select(sumDistinct("Quantity")).show() # 29310
 
 ```
 #### avg
@@ -93,7 +110,18 @@ df.count() == 541909
 -	avgDistinct??  : 모든  고윳값의  평균  산출 가능
 -	대부분의 집계함수는  고윳값을 사용해 집계를  수행하는 방식  지원
 ``` 
-코드  1
+from pyspark.sql.functions import sum, count, avg, expr
+
+df.select(
+    count("Quantity").alias("total_transactions"),
+    sum("Quantity").alias("total_purchases"),
+    avg("Quantity").alias("avg_purchases"),
+    expr("mean(Quantity)").alias("mean_purchases"))\
+  .selectExpr(
+    "total_purchases/total_transactions",
+    "avg_purchases",
+    "mean_purchases").show()
+
 
 ```
 
@@ -108,7 +136,10 @@ df.count() == 541909
 (표본  집단인  경우,  표본에  있는  자료값의 개수보다  작은 n-1로 나눔)
 ![image](https://user-images.githubusercontent.com/18010639/125221837-d3a2c900-e303-11eb-9822-38d55065d7ce.png)
 ``` 
-코드  1
+from pyspark.sql.functions import var_pop, stddev_pop
+from pyspark.sql.functions import var_samp, stddev_samp
+df.select(var_pop("Quantity"), var_samp("Quantity"),
+  stddev_pop("Quantity"), stddev_samp("Quantity")).show()
 
 ```
 #### 비대칭도와  첨도 
@@ -121,12 +152,21 @@ df.count() == 541909
 ![image](https://user-images.githubusercontent.com/18010639/125224302-54fc5a80-e308-11eb-8cda-5d7bd8e492e3.png)
 ![image](https://user-images.githubusercontent.com/18010639/125224308-56c61e00-e308-11eb-9064-95322059f45c.png)
 
+``` 
+from pyspark.sql.functions import skewness, kurtosis
+df.select(skewness("Quantity"), kurtosis("Quantity")).show()
+
+``` 
+
 #### 공분산과  상관관계
 - cov와 corr  함수를  사용해  공분산과  상관관계 계산 
 - 공분산은  데이터  입력값에  따라  다른 범위를  가지며,  상관관계는  피어슨  상관계수를  측정하여  -1과  1사이의 값을 가짐
 - var  함수처럼  표본공분산 방식이나 모공분산 방식으로  공분산  계산  가능 
 ``` 
-코드  1
+from pyspark.sql.functions import corr, covar_pop, covar_samp
+df.select(corr("InvoiceNo", "Quantity"), covar_samp("InvoiceNo", "Quantity"),
+    covar_pop("InvoiceNo", "Quantity")).show()
+
 
 ```
 ####	복합  데이터  타입의 집계
@@ -134,8 +174,12 @@ df.count() == 541909
 - 특정  컬럼의 값을 리스트로 수집하거나  셋  데이터 타입으로 고윳값만 수집할 수  있음  
 - 처리 파이프라인에서  다양한  프로그래밍 방식으로  다루거나  사용자  정의  함수에  활용  가능 
 ``` 
-코드  1
+from pyspark.sql.functions import collect_set, collect_list
+df.agg(collect_set("Country"), collect_list("Country")).show()
 
+#스칼라 버전 
+import org.apache.spark.sql.functions.map
+df.select(map(col("Description"), col("InvoiceNo")).alias("complex_map")).show(2)
 ```
 ### 그룹화  
 #### DataFrame  수준의  집계가  아닌,  데이터  그룹 기반의 집계  수행  
@@ -145,7 +189,11 @@ df.count() == 541909
 2.  그룹에  집계  연산을 수행  ->  DataFrame 반환 
 #### 그룹의  기준이 되는  컬럼을  여러개 지정 할  수  있음  
 ``` 
-코드  1
+from pyspark.sql.functions import count
+
+df.groupBy("InvoiceNo").agg(
+    count("Quantity").alias("quan"),
+    expr("count(Quantity)")).show()
 
 ```
 #### 표현식을  이용한  그룹화  
@@ -155,14 +203,17 @@ df.count() == 541909
 2. 집계에 표현식을  사용할  수  있음
 3. 트랜스포메이션이  완료된  컬럼에  alias  메서드를  사용할 수있음
 ``` 
-코드  1
+df.groupBy("InvoiceNo").agg(expr("avg(Quantity)"),expr("stddev_pop(Quantity)"))\
+  .show()
 
 ```
 #### 맵을  이용한  그룹화
 -	컬럼을  키로, 수행할  집계함수의  문자열을  값으로  하는  맵타입을 사용해 트랜스포메이션을  정의할 수  있음 
 - 수행할  집계함수를  한 줄로  작성하며  여러  컬럼명을  재사용할  수  있음
 ``` 
-코드  1
+df.groupBy("InvoiceNo").agg(expr("avg(Quantity)"),expr("stddev_pop(Quantity)"))\
+  .show()
+
 
 ```
 ### 윈도우  함수  
@@ -180,8 +231,37 @@ df.count() == 541909
 3. 집계  함수  
  
 ``` 
-코드  1
+from pyspark.sql.functions import col, to_date
+dfWithDate = df.withColumn("date", to_date(col("InvoiceDate"), "MM/d/yyyy H:mm"))
+dfWithDate.createOrReplaceTempView("dfWithDate")
 
+
+from pyspark.sql.window import Window
+from pyspark.sql.functions import desc
+windowSpec = Window\
+  .partitionBy("CustomerId", "date")\
+  .orderBy(desc("Quantity"))\
+  .rowsBetween(Window.unboundedPreceding, Window.currentRow)
+``` 
+``` 
+from pyspark.sql.functions import max
+maxPurchaseQuantity = max(col("Quantity")).over(windowSpec)
+
+from pyspark.sql.functions import dense_rank, rank
+purchaseDenseRank = dense_rank().over(windowSpec)
+purchaseRank = rank().over(windowSpec)
+``` 
+``` 
+from pyspark.sql.functions import col
+
+dfWithDate.where("CustomerId IS NOT NULL").orderBy("CustomerId")\
+  .select(
+    col("CustomerId"),
+    col("date"),
+    col("Quantity"),
+    purchaseRank.alias("quantityRank"),
+    purchaseDenseRank.alias("quantityDenseRank"),
+    maxPurchaseQuantity.alias("maxPurchaseQuantity")).show()
 ```
 
 ### 그룹화  셋  
@@ -195,13 +275,31 @@ df.count() == 541909
 - GROUPING SET은  SQL  에서만 사용 가능함
 - DataFrame에서 동일한  연산을  수행하려면  roll up  메서드와 cube  메서드 사용  
 
+``` 
+SELECT CustomerId, stockCode, sum(Quantity) FROM dfNoNull
+GROUP BY customerId, stockCode GROUPING SETS((customerId, stockCode))
+ORDER BY CustomerId DESC, stockCode DESC
+
+
+SELECT CustomerId, stockCode, sum(Quantity) FROM dfNoNull
+GROUP BY customerId, stockCode GROUPING SETS((customerId, stockCode),())
+ORDER BY CustomerId DESC, stockCode DESC
+``` 
+
+
 #### 롤업
 ##### group-by  스타일의  다양한 연산을  수행할  수  있는 다차원  집계  기능
 ##### 모든  날짜의  총합,  날짜별  총합, 날짜별  국가별  총합 모두  포함
 ##### null  값을  가진  로우에서  전체 날짜의  합계를 확인할  수 있음 
 - 모두  null인  로우는  레코드에의 전체 합계를 나타냄
 ``` 
-코드  1
+dfNoNull = dfWithDate.drop()
+dfNoNull.createOrReplaceTempView("dfNoNull")
+
+rolledUpDF = dfNoNull.rollup("Date", "Country").agg(sum("Quantity"))\
+  .selectExpr("Date", "Country", "`sum(Quantity)` as total_quantity")\
+  .orderBy("Date")
+rolledUpDF.show()
 
 ```
 #### 큐브
@@ -213,7 +311,11 @@ df.count() == 541909
 - 날짜별  국가별  합계  
 - 전체  날짜와  국가별 합계 
 ``` 
-코드  1
+from pyspark.sql.functions import sum
+
+dfNoNull.cube("Date", "Country").agg(sum(col("Quantity")))\
+  .select("Date", "Country", "sum(Quantity)").orderBy("Date").show()
+
 
 ```
 - 테이블에  있는  모든  정보를  빠르고 쉽게 조회할 수  있는 요약 정보  테이블을  만들  수 있음 
@@ -228,7 +330,12 @@ df.count() == 541909
 - 1: 구매한 물품에 관계없이 customerId를 기반으로 총 수량 제공
 - 0: customerId와 stockCode 별 조합에 따라 총 수량 제공
 ``` 
-코드  1
+// 스칼라 버전
+import org.apache.spark.sql.functions.{grouping_id, sum, expr}
+
+dfNoNull.cube("customerId", "stockCode").agg(grouping_id(), sum("Quantity"))
+.orderBy(col("grouping_id()").desc)
+.show()
 
 ```
 #### 피벗
@@ -236,7 +343,7 @@ df.count() == 541909
 ##### 카디널리티가 낮은 경우, 피벗을 사용하여 컬럼과 스키마를 확인하는 것이 좋음
 - 카디널리티  :   중복도가  높으면  카디널리티가  낮다고 표현 
 ``` 
-코드  1
+pivoted = dfWithDate.groupBy("date").pivot("Country").sum()
 
 ```
 
@@ -257,6 +364,41 @@ df.count() == 541909
 8. evaluate: 최종 반환 결과값 생성 로직
 
 ``` 
-코드  1
+// 스칼라 버전
+import org.apache.spark.sql.expressions.MutableAggregationBuffer
+import org.apache.spark.sql.expressions.UserDefinedAggregateFunction
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types._
+class BoolAnd extends UserDefinedAggregateFunction {
+  def inputSchema: org.apache.spark.sql.types.StructType =
+    StructType(StructField("value", BooleanType) :: Nil)
+  def bufferSchema: StructType = StructType(
+    StructField("result", BooleanType) :: Nil
+  )
+  def dataType: DataType = BooleanType
+  def deterministic: Boolean = true
+  def initialize(buffer: MutableAggregationBuffer): Unit = {
+    buffer(0) = true
+  }
+  def update(buffer: MutableAggregationBuffer, input: Row): Unit = {
+    buffer(0) = buffer.getAs[Boolean](0) && input.getAs[Boolean](0)
+  }
+  def merge(buffer1: MutableAggregationBuffer, buffer2: Row): Unit = {
+    buffer1(0) = buffer1.getAs[Boolean](0) && buffer2.getAs[Boolean](0)
+  }
+  def evaluate(buffer: Row): Any = {
+    buffer(0)
+  }
+}
+
+// 스칼라 버전
+val ba = new BoolAnd
+spark.udf.register("booland", ba)
+import org.apache.spark.sql.functions._
+spark.range(1)
+  .selectExpr("explode(array(TRUE, TRUE, TRUE)) as t")
+  .selectExpr("explode(array(TRUE, FALSE, TRUE)) as f", "t")
+  .select(ba(col("t")), expr("booland(f)"))
+  .show()
 
 ```
