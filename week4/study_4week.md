@@ -210,6 +210,9 @@ df.groupBy("InvoiceNo").agg(expr("avg(Quantity)"),expr("stddev_pop(Quantity)"))\
 import org.apache.spark.sql.functions.map
 df.select(map(col("Description"), col("InvoiceNo")).alias("complex_map")).show(2)
 
+// 스칼라 버전
+df.groupBy("InvoiceNo").agg("Quantity"->"avg", "Quantity"->"stddev_pop").show()
+
 ```
 ### 윈도우  함수  
 #### 데이터의 특정  윈도우를  대상으로  고유  집계 연산 수행 
