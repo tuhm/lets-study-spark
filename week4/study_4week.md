@@ -177,9 +177,6 @@ df.select(corr("InvoiceNo", "Quantity"), covar_samp("InvoiceNo", "Quantity"),
 from pyspark.sql.functions import collect_set, collect_list
 df.agg(collect_set("Country"), collect_list("Country")).show()
 
-#스칼라 버전 
-import org.apache.spark.sql.functions.map
-df.select(map(col("Description"), col("InvoiceNo")).alias("complex_map")).show(2)
 ```
 ### 그룹화  
 #### DataFrame  수준의  집계가  아닌,  데이터  그룹 기반의 집계  수행  
@@ -214,6 +211,9 @@ df.groupBy("InvoiceNo").agg(expr("avg(Quantity)"),expr("stddev_pop(Quantity)"))\
 df.groupBy("InvoiceNo").agg(expr("avg(Quantity)"),expr("stddev_pop(Quantity)"))\
   .show()
 
+#스칼라 버전 
+import org.apache.spark.sql.functions.map
+df.select(map(col("Description"), col("InvoiceNo")).alias("complex_map")).show(2)
 
 ```
 ### 윈도우  함수  
