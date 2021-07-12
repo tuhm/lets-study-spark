@@ -99,7 +99,7 @@ df.count() == 541909
 - 모 표준  분산이나 모표준편차  방식을  사용하려면  var_pop함수나 stddev_pop 함수 사용  
   : 자료가 모집단인지  모집단을 대표하는 표본  집단인지에  따라 달라짐  
   : 표본  집단인  경우,  표본에  있는  자료값의 개수보다  작은 n-1로 나눔
- 
+ https://github.com/tuhm/lets-study-spark/issues/1#issue-941608188
  
 	코드  
 	비대칭도와  첨도 
