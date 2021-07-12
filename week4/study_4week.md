@@ -185,14 +185,7 @@ df.agg(collect_set("Country"), collect_list("Country")).show()
 1.  하나 이상의  컬럼을 그룹화  ->  RelationalGroupedDataset 반환
 2.  그룹에  집계  연산을 수행  ->  DataFrame 반환 
 #### 그룹의  기준이 되는  컬럼을  여러개 지정 할  수  있음  
-``` 
-from pyspark.sql.functions import count
 
-df.groupBy("InvoiceNo").agg(
-    count("Quantity").alias("quan"),
-    expr("count(Quantity)")).show()
-
-```
 #### 표현식을  이용한  그룹화  
 - 카운팅  메서드  대신 count  함수를  사용할  것을  추천  
 - count함수를  select 구문에  표현식으로  지정하는  것보다  agg  메서드  사용하는  것을  추천  
@@ -200,9 +193,11 @@ df.groupBy("InvoiceNo").agg(
 2. 집계에 표현식을  사용할  수  있음
 3. 트랜스포메이션이  완료된  컬럼에  alias  메서드를  사용할 수있음
 ``` 
-df.groupBy("InvoiceNo").agg(expr("avg(Quantity)"),expr("stddev_pop(Quantity)"))\
-  .show()
+from pyspark.sql.functions import count
 
+df.groupBy("InvoiceNo").agg(
+    count("Quantity").alias("quan"),
+    expr("count(Quantity)")).show()
 ```
 #### 맵을  이용한  그룹화
 -	컬럼을  키로, 수행할  집계함수의  문자열을  값으로  하는  맵타입을 사용해 트랜스포메이션을  정의할 수  있음 
