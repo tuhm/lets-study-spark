@@ -99,7 +99,8 @@ df.count() == 541909
 - 모 표준 분산이나 모표준편차  방식을  사용하려면  var_pop함수나 stddev_pop 함수 사용  
 자료가 모집단인지  모집단을 대표하는 표본  집단인지에  따라 달라짐  
 (표본  집단인  경우,  표본에  있는  자료값의 개수보다  작은 n-1로 나눔)
-- ![image](https://user-images.githubusercontent.com/18010639/125221837-d3a2c900-e303-11eb-9822-38d55065d7ce.png)
+-모표준분산 & 표본표준분산 차이 
+ ![image](https://user-images.githubusercontent.com/18010639/125221837-d3a2c900-e303-11eb-9822-38d55065d7ce.png)
 ``` 
 코드  1
 
@@ -111,8 +112,10 @@ df.count() == 541909
 - 첨도 :  데이터  끝 부분  측정
 : 확률분포의  뾰족한 정도를  나타내는  척도  
 - 비대칭도와 첨도는 확률  변수의  확률  분포로 데이터를 모델링할  때  특히  중요  
-- ![image](https://user-images.githubusercontent.com/18010639/125224302-54fc5a80-e308-11eb-8cda-5d7bd8e492e3.png)
-- ![image](https://user-images.githubusercontent.com/18010639/125224308-56c61e00-e308-11eb-9064-95322059f45c.png)
+-비대칭도 예제.
+ ![image](https://user-images.githubusercontent.com/18010639/125224302-54fc5a80-e308-11eb-8cda-5d7bd8e492e3.png)
+- 첨도 예제.
+![image](https://user-images.githubusercontent.com/18010639/125224308-56c61e00-e308-11eb-9064-95322059f45c.png)
 
 #### 공분산과  상관관계
 - cov와 corr  함수를  사용해  공분산과  상관관계 계산 
