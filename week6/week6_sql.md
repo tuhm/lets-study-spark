@@ -15,9 +15,9 @@ Structured Query Language 의 범용적인 인터페이스로 스파크의 연�
 하이브 메타스토어 (여러세션에서 사용할 테이블 정보 보관) 를 통해 하이브와 연동: 메타스토어를 이용하면 조회할 파일 수를 최소화할 수 있음  
 
 #### < 속성값 설정 >
-- 접속하려는 하이브 메타스토어 버전 번경: spark.sql.hive.metastore.version 에 설정
-- HiveMetastoreClient 가 초기화되는 방식 변경: spark.sql.hive.metastore.jars 설정
-- 하이브 메타스토어가 저장된 다른 데이터베이스에 접속: 각 DB 에 상응하는 클래스 접두사 정의하고 스파크와 하이브에서 공유할 수 있도록 spark.sql.hive.metastore.sharedPrefixes 에 설정
+- 접속하려는 하이브 메타스토어 버전 번경: ```spark.sql.hive.metastore.version``` 에 설정
+- HiveMetastoreClient 가 초기화되는 방식 변경: ```spark.sql.hive.metastore.jars``` 설정
+- 하이브 메타스토어가 저장된 다른 데이터베이스에 접속: 각 DB 에 상응하는 클래스 접두사 정의하고 스파크와 하이브에서 공유할 수 있도록 ```spark.sql.hive.metastore.sharedPrefixes``` 에 설정
 
 ### 10.4 스파크 SQL 쿼리 실행방법
 ### 10.4.1. SQL CLI (Command-Line-Interface)
@@ -26,7 +26,7 @@ Structured Query Language 의 범용적인 인터페이스로 스파크의 연�
 
 ### 10.4.2. 스파크의 프로그래밍 SQL Interface
 - 스파크에서 지원하는 language API (Python, Scala) 를 통해 SparkSession 객체의 sql 메서드를 사용 
-  -  %pyspark 같은 환경에서 spark.sql 사용하는 것을 말함 
+  -  ```%pyspark``` 같은 환경에서 ```spark.sql``` 사용하는 것을 말함 
 또 SQL 과 DataFrame 이 완벽하게 연동되고, 처리된 결과를 DataFrame 으로 반환
 - ``` .createOrReplaceTempView("someTable") ``` 로 SQL 에서 사용할 수 있도록 처리 후 SQL 코드로 연산 
 - DataFrame 을 사용하는 것보다 SQL 코드로 표현하기 쉬운 트랜스포메이션의 경우 강력함 
@@ -43,8 +43,10 @@ Structured Query Language 의 범용적인 인터페이스로 스파크의 연�
 - 스파크에서 테이블은 항상 데이터를 가지고 있음 (임시 테이블 없고, 데이터를 가지지 않는 것은 뷰 뿐임) 
 
 ### 10.6.1 스파크 관리형 테이블
-테이블의 데이터와 테이블에 대한 데이터 (메타 데이터) 를 모두 저장함 
-관리형 테이블 (Internal Table) 을 생성하면 파일이 기본 저장 경로인 /user/hive/warehouse 에 저장되고, 외부테이블과는 달리 drop 하면 데이터와 스키마가 함께 삭제됨 
+- 테이블의 데이터와 테이블에 대한 데이터 (메타 데이터) 를 모두 저장함 
+- ```saveAsTable ``` 로 관리형 테이블을 만듬 
+- 관리형 테이블 (Internal Table) 을 생성하면 파일이 기본 저장 경로인 ```/user/hive/warehouse``` 에 저장되고, 외부테이블과는 달리 drop 하면 데이터와 스키마가 함께 삭제됨 
+- 저장 
 
 ### 10.6.2. 외부 테이블 
 이미 하둡에 있는 데이터를 기반으로 테이블을 만들기 때문에 스키마만 정해주면 됨. 그래서 파일 따로 스키마 따로 관리할 수 있음 
