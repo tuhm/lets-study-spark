@@ -28,17 +28,32 @@ Structured Query Language 의 범용적인 인터페이스로 스파크의 연�
 - 스파크에서 지원하는 language API (Python, Scala) 를 통해 SparkSession 객체의 sql 메서드를 사용 
   -  %pyspark 같은 환경에서 spark.sql 사용하는 것을 말함 
 또 SQL 과 DataFrame 이 완벽하게 연동되고, 처리된 결과를 DataFrame 으로 반환
-- .createOrReplaceTempView("someTable") 로 SQL 에서 사용할 수 있도록 처리 후 SQL 코드로 연산 
+- ``` .createOrReplaceTempView("someTable") ``` 로 SQL 에서 사용할 수 있도록 처리 후 SQL 코드로 연산 
 - DataFrame 을 사용하는 것보다 SQL 코드로 표현하기 쉬운 트랜스포메이션의 경우 강력함 
 
 ### 10.4.3. 스파크 SQL 쓰리프트 JDBC/ODBC 서버 Interface
 - Tableau나 Excel 같은 소프트웨어에서 스파크에 접속하여 Spark SQL query engine 을 활용 
 - Spark Thrift Server 에 접속하기 위해 JDBC client 를 갖춘 beeline 이나 squirrel 을 이용
 
-#### 10.5 카탈로그 
+### 10.5 카탈로그 
 스파크 SQL 에서 가장 높은 추상화 단계. 메타데이터 뿐 아니라 데이터베이스, 테이블, 함수, 뷰에 대한 정보를 추상화. 스파크 SQL 을 사용하는 또 다른 프로그래밍 인터페이스 (10.4.2 의 내용) 
 
-#### 10.6 테이블 
-- 데이터의 구조라는 점에서 DataFrame 과 논리적으로 동일함. 단, DataFrame 은 프로그래밍 언어로 정의하지만 테이블은 데이터ㅔㅂ이스에서 정의함 
+### 10.6 테이블 
+- 데이터의 구조라는 점에서 DataFrame 과 논리적으로 동일함. 단, DataFrame 은 프로그래밍 언어로 정의하지만 테이블은 데이터베이스에서 정의함 
 - 스파크에서 테이블은 항상 데이터를 가지고 있음 (임시 테이블 없고, 데이터를 가지지 않는 것은 뷰 뿐임) 
 
+### 10.6.1 스파크 관리형 테이블
+테이블의 데이터와 테이블에 대한 데이터 (메타 데이터) 를 모두 저장함 
+관리형 테이블 (Internal Table) 을 생성하면 파일이 기본 저장 경로인 /user/hive/warehouse 에 저장되고, 외부테이블과는 달리 drop 하면 데이터와 스키마가 함께 삭제됨 
+
+### 10.6.2. 외부 테이블 
+이미 하둡에 있는 데이터를 기반으로 테이블을 만들기 때문에 스키마만 정해주면 됨. 그래서 파일 따로 스키마 따로 관리할 수 있음 
+누군가 테이블을 날려도 데이터는 있음 
+
+```
+CREATE EXTERNAL TABLE tbl ( 
+) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '.' 
+STORED AS CSV 
+LOCATION '/some/path';
+```
