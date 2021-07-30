@@ -48,9 +48,9 @@ RDD 분산 데이터 처리를 위한 RDD / Accumulator, 브로드캐스트 분�
  - 기존에 사용하던 DataFrame이나 Dataset의 RDD 메서드를 호출하면 쉽게 RDD로 변환할 수 있습니다. 파이썬에는 DataFrame만 존재하며 Dataset을 사용할 수 없으므로 Row 타입의 RDD를 얻게
 됩 니 다.
 
-*spark.range(10).rdd
-*spark.range(10).toDF("id").rdd.map(lambda row : row[0])
-*spark.range(10).rdd.toDF() #RDD 를 사용하여 Dataframe, Data set 생성
+  *spark.range(10).rdd
+  *spark.range(10).toDF("id").rdd.map(lambda row : row[0])
+  *spark.range(10).rdd.toDF() #RDD 를 사용하여 Dataframe, Data set 생성
 
 #### 12.3.2 로컬 컬렉션으로 RDD 생성하기
 - 컬렉션 객체를 RDD로 만들려면 (SparkSession 안에 있는) SparkContext의 parallelize 메서드를 호출.
