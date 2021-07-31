@@ -44,6 +44,7 @@ spark.range(10).rdd
 spark.range(10).toDF("id").rdd.map(lambda row : row[0])
 spark.range(10).rdd.toDF() #RDD 를 사용하여 Dataframe, Data set 생성
 ```
+
 ### 12.3.2 로컬 컬렉션으로 RDD 생성하기
 - SparkSession 안에 있는 SparkContext의 parallelize 메서드를 호출.
 ``` C
@@ -53,50 +54,68 @@ words.setName("myWords")
 words.name() // 스파크 UI에 지정한 이름으로 RDD 표시
 ```
 
-#### 12.3.3 데이터 소스로 RDD 생성하기
+### 12.3.3 데이터 소스로 RDD 생성하기
 - DataSource API는 데이터를 읽는 가장 좋은 방법입니다. 또한 sparkContext를 시용해 데이터를 RDD로 읽을 수 있습니다.
-*Spark.sparkContext.textFile("/some/path/withTextFiles")
-*Spark.sparkcontext.wholeTextFiles("/some/path/withTextFiles")
+``` C
+Spark.sparkContext.textFile("/some/path/withTextFiles")
+Spark.sparkcontext.wholeTextFiles("/some/path/withTextFiles")
+```
 
-### 12.4 RDD 다루기
-- RDD는 스피크 데이터 타입 대신 자바나 스칼라의 객체를 디룬디는 사실이 가장 큰 차이점. 필터, 맵 힘수, 집계 그리고 Dataframe의 다양한 함수를 사용자가 직접 정의
+## 12.4 RDD 다루기
+- RDD는 스파크 데이터 타입 대신 자바나 스칼라의 객체를 디룬다는 사실이 가장 큰 차이점
+- 필터, 맵 함수, 집계 그리고 Dataframe의 다양한 함수를 사용자가 직접 정의
 
-### 12.5 트랜스포메이션
+## 12.5 트랜스포메이션
 - Dataframe이나 Dataset과 동일하게 RDD에 트랜스포메이션을 지정해 새로운 RDD를 생성
 
-12.5.1 Distinct
-- 중복된 항목 제거
-*words.distinct().count()
+  1. Distinct : 중복된 항목 제거
+  ``` C
+  words.distinct().count()
+  ```
 
-12.5.2 filter (=where)
-*def startsWithS (individual):
+2. filter (=where)
+``` C
+def startsWithS (individual):
      return individual.startsWith("S")
 words.filter(lambda word: StartsWithS(word)).collect()
+```
 
-12.5.3 map : 주어진 값을 원하는 값으로 반환
-*words = words.map(lambda word: (word, word [0] , word.startswith("5")))
+3. map : 주어진 값을 원하는 값으로 반환
+``` C
+words = words.map(lambda word: (word, word [0] , word.startswith("5")))
+```
 
-12.5.4 SortBy : 정렬
-*words.sortBy(lambda word: len(word) * -1).take(2)
+4. SortBy : 정렬
+``` C
+words.sortBy(lambda word: len(word) * -1).take(2)
+```
 
-12.5.5 randomSplit : RDD를 임의로 분할하여 RDD 배열을 생성 
-*fiftyFiftySplit = words.randomSplit([O.5, 0.5])
+5. randomSplit : RDD를 임의로 분할하여 RDD 배열을 생성 
+``` C
+fiftyFiftySplit = words.randomSplit([O.5, 0.5])
+```
 
-#### 12.6 액션 : 트랜스포메이션 연산을 시작하려면 액션을 사용
-12.6.1 reduce : 모든 값을 하나의 값으로 만들 때 사용
-*spark.sparkContext.parallelize(range(1, 20)).reduce(lambda x, y: x + y) # 값온 210
-12.6.2 count : 전체 로우수 반환 
+## 12.6 액션 : 트랜스포메이션 연산을 시작하는 액션!
+
+1. reduce : 모든 값을 하나의 값으로 만들 때 사용
+``` C
+spark.sparkContext.parallelize(range(1, 20)).reduce(lambda x, y: x + y)  // result = 210
+```
+2. count : 전체 로우수 반환 
+``` C
 - countApprox(timeoutMilliseconds, confidence) 
 - countByValue : RDD 값의 갯수 반환 (이 메서드는 전체 로우 수나 고유 아이템 수가 작은 경우에만 사용하는 것이 좋음)
-12.6.3 first : Data의 첫번째 값 반환
-12.6.4 min , max 
-12.6.5 take : take와 이것의 파생 메서드는 RDD에서 가져올 "값"의 개수를 파라미터로 사용. 먼저 하나의 파티션을 스캔합니다. 그다음에 해당 파티션의 결과 수를 이용해 파라미터로
-지정된 값을 만족하는 데 필요한 추가 파티션 수를 예측. 
-*words.take(5)
-*word5.takeOrdered(5)
-*word5.top(5)
+```
+3. first : Data의 첫번째 값 반환
+4. min , max : Data min, max
+5. take : "값"의 개수를 파라미터로 사용. 필요 수 만큼 출력
+``` C 
+words.take(5)
+word5.takeOrdered(5)
+word5.top(5)
+```
 
-### 12.7 파일 저장하기
+## 12.7 파일 저장하기
 RDD를 사용하면 일반적인 의미의 데이터소스에 저장 할 수 없습니다. 각 파티션의 내용을 저장하려면 전체 파티션을 순회하면서 외부 데이터베이스에 저장. 스파크는 각 파티션의 데이터를 파일로 저장.
 
 12.7.1 saveAsTextFile : text 파일로 저장
