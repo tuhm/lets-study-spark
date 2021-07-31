@@ -10,49 +10,48 @@
   
 ## 12.2 RDD 개요
 
-1. 모든 Dataframe, Dataset 코드는 RDD로 컴파일됨. 스파크 UI에서 RDD 단위로 잡이 수행
-2. RDD는 불변성(변경이 불가능)을 가지며 **병렬로 처리할 수 있는 파티셔닝된 레코드의 모음**
-3. DataFrame의 각 레코드는 스키마를 알고 있는 필드로 구성된 구조화된 로우인 반면, **RDD의 레코드는 그저 프로그래머가 선택하는 자바, 스칼라, 파이썬의 객체**
-5. 이 객체에는 사용자가 원하는 포맷을 사용해 원하는 모든 데이터를 저장 할 수 있음
-6. 구조적 API와는 다르게 레코드의 내부 구조를 스파크에서 파악할 수 없으므로 최적화를 하려면 훨씬 많은 수작업이 필요
-7. RDD API는 11장에서 알아본 Dataset과 유사하지만, RDD는 구조화된 데이터 엔진을 사용해 데이터를 저장하거나 다루지 않음 
-8. 하지만 RDD와 Dataset 사이의 전환은 매우 쉬우므로 두 API를 모두 사용해 각 API의 장점을 동시에 활용 가능
+- 모든 Dataframe, Dataset 코드는 RDD로 컴파일됨. 스파크 UI에서 RDD 단위로 잡이 수행
+- RDD는 불변성(변경이 불가능)을 가지며 **병렬로 처리할 수 있는 파티셔닝된 레코드의 모음**
+- DataFrame의 각 레코드는 스키마를 알고 있는 필드로 구성된 구조화된 로우인 반면, **RDD의 레코드는 그저 프로그래머가 선택하는 자바, 스칼라, 파이썬의 객체**
+- 이 객체에는 사용자가 원하는 포맷을 사용해 원하는 모든 데이터를 저장 할 수 있음
+- 구조적 API와는 다르게 레코드의 내부 구조를 스파크에서 파악할 수 없으므로 최적화를 하려면 훨씬 많은 수작업이 필요
+- RDD API는 11장에서 알아본 Dataset과 유사하지만, RDD는 구조화된 데이터 엔진을 사용해 데이터를 저장하거나 다루지 않음 
+- 하지만 RDD와 Dataset 사이의 전환은 매우 쉬우므로 두 API를 모두 사용해 각 API의 장점을 동시에 활용 가능
 
 + 주요 속성
   + 파티션의 목록
-  + 각 조각을 연산하는 힘수
+  + 각 조각을 연산하는 함수
   + 다른 RDD와의 의존성 목록
-  + 부가적으로 키 값 RDD를 위한 Partitioner (예 : RDD는 해쉬 파티셔닝되어 있다고 말할 수 있습니다)
-  + 부가적으로 각 조각을 연산하기 위한 기본 위치 목록(예 : 하둡 분산 파일 시스템 파일의 블록 위치)
+  + 부가적으로 키 값 RDD를 위한 Partitioner 
+  + 부가적으로 각 조각을 연산하기 위한 기본 위치 목록
 
 ### 12.2.1 유형
 - RDD는 DataFrame API에서 최적화된 물리적 실행 계획을 만드는 데 대부분 사용
-1. 제네릭 RDD type
-2. 키 기반의 집계가 가능한 키-값 RDD : 특수 연산 뿐만 아니라 키를 이용한 사용자 지정 파티셔닝 개념 보유
+  1. 제네릭 RDD type
+  2. 키 기반의 집계가 가능한 키-값 RDD : 특수 연산 뿐만 아니라 키를 이용한 사용자 지정 파티셔닝 개념 보유
 
 - 특징
-- RDD 역시 분산 환경에서 데이터를 다루는 데 필요한 지연 처리 방식의 트랜스포메이션과 즉시 실행 방식의 액션을제공
-- RDD에는 ‘로우’리는 개념이 없습니다. 개별 레코드는 지바, 스칼라, 파이썬 객체일 뿐이며 구조적 API에서 제공히는 여러 함수를 시용하지 못하기 때문에 수동으로 처리
-- RDD API는 스칼라, 자바 뿐만 아니라 파이썬에도 사용 가능. 하지만 파이썬으로 RDD 를 사용할 때는 성능 저하가 발생하므로 파이썬에서는 구조적 API 사용을 권장
-- 수동으로 RDD 생성은 권장하지 않음. 물리적으로 분산된 데이터(자체적으로 구성한 데이터 파티셔닝)에 세부적인 제어가 필요할 때 RDD 를 사용
+  - RDD 역시 분산 환경에서 데이터를 다루는 데 필요한 지연 처리 방식의 **트랜스포메이션과 즉시 실행 방식의 액션을제공**
+  - **RDD에는 ‘로우’라는 개념이 없습니다.** 개별 레코드는 지바, 스칼라, 파이썬 객체일 뿐이며 구조적 API에서 제공하는 여러 함수를 시용하지 못하기 때문에 수동으로 처리해야함
+  - RDD API는 스칼라, 자바 뿐만 아니라 파이썬에도 사용 가능. 하지만 파이썬으로 RDD를 사용할 때는 성능 저하가 발생하므로 **파이썬에서는 구조적 API 사용을 권장**
+  - 수동으로 RDD생성은 권장하지 않음. 물리적으로 분산된 데이터(자체적으로 구성한 데이터 파티셔닝)에 세부적인 제어가 필요할 때 RDD 를 사용
 
+## 12.3 RDD 생성하기
 
-### 12.3 RDD 생성하기
-
-#### 12.3.1 Dataframe, Dataset으로 RDD 생성하기
- - 기존에 사용하던 DataFrame이나 Dataset의 RDD 메서드를 호출하면 쉽게 RDD로 변환할 수 있습니다. 파이썬에는 DataFrame만 존재하며 Dataset을 사용할 수 없으므로 Row 타입의 RDD를 얻게
-됩 니 다.
-
+### 12.3.1 Dataframe/Dataset으로 RDD 생성하기
 ``` C
 spark.range(10).rdd
 spark.range(10).toDF("id").rdd.map(lambda row : row[0])
 spark.range(10).rdd.toDF() #RDD 를 사용하여 Dataframe, Data set 생성
 ```
-
-#### 12.3.2 로컬 컬렉션으로 RDD 생성하기
-- 컬렉션 객체를 RDD로 만들려면 (SparkSession 안에 있는) SparkContext의 parallelize 메서드를 호출.
-*myCollection = "Spark The Definitive guide : Big Data Processing Made Simple".split(" ")/words = spark.SparkContext.parallelize(myCollection, 2) #파티션 수 지정가능
-*words.setName("myWords") / words.name() #스파크 UI에 지정한 이름으로 RDD 표시
+### 12.3.2 로컬 컬렉션으로 RDD 생성하기
+- SparkSession 안에 있는 SparkContext의 parallelize 메서드를 호출.
+``` C
+myCollection = "Spark The Definitive guide : Big Data Processing Made Simple".split(" ")
+words = spark.SparkContext.parallelize(myCollection, 2)  // 파티션 수 지정가능
+words.setName("myWords")
+words.name() // 스파크 UI에 지정한 이름으로 RDD 표시
+```
 
 #### 12.3.3 데이터 소스로 RDD 생성하기
 - DataSource API는 데이터를 읽는 가장 좋은 방법입니다. 또한 sparkContext를 시용해 데이터를 RDD로 읽을 수 있습니다.
