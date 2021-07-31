@@ -122,6 +122,7 @@ Spark.sparkcontext.wholeTextFiles("/some/path/withTextFiles")
 
   1. saveAsTextFile : text 파일로 저장
   2. 시퀀스 파일 *words.saveAsObjectFile("/tmp/my/sequenceFilePath")
+    시퀀스 파일 : 키와 값으로 구성된 데이터를 저장하는 이진 파일 포맷으로, 하둡에서 자주 사용됨
   3. 하둡파일 : 여러가지 하둡 파일 포맷 가능
 
 ## 12.8 캐싱 : RDD를 캐싱하거나 저장 할 수 있음. 
