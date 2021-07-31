@@ -73,7 +73,7 @@ print(KVcharacters.countByKey())    // defaultdict(<class 'int'>, {'s': 4, 'p': 
 
 ## 13.4 조인 : 구조적 API에서 알아본 것과 거의 동일한 조인 방식을 가지고 있음. RDD조인이 사용자가 더 많은 부분은 관여해야함.
 
-  1. 내부조인
+  1. 내부조인 : 스파크에서 제공하는 모든 Join 종류 가능
   ``` C
   KVcharacters.join(keyedChars).count()
   KVcharacters.join(keyedChars, outputPartitions).count()
