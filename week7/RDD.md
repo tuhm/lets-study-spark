@@ -124,7 +124,9 @@ Spark.sparkcontext.wholeTextFiles("/some/path/withTextFiles")
   2. 시퀀스 파일 *words.saveAsObjectFile("/tmp/my/sequenceFilePath")
   3. 하둡파일 : 여러가지 하둡 파일 포맷 가능
 
-## 12.8 캐싱 : RDD를 캐싱하거나 저장 할 수 있음. 기본적으로 캐시와 저장은 메모리에 있는 데이터만을 대상으로함. SetName 함수를 사용하면 캐시된 RDD에 이름을 지정
+## 12.8 캐싱 : RDD를 캐싱하거나 저장 할 수 있음. 
+- 기본적으로 캐시와 저장은 메모리에 있는 데이터만을 대상으로함
+- SetName 함수를 사용하면 캐시된 RDD에 이름을 지정
 ``` C 
 words.cache()
 words.getStorageLevel() // 저장소 수준 조회
@@ -137,7 +139,7 @@ words.checkpoint()
 ```
 
 ## 12.10 RDD를 시스템 명령으로 전송하기
-= pipe 메서드를 시용하면 파이핑 요소로 생성된 RDD를 외부 프로세스로 전달할 수 있습니다 ? 
+- pipe 메서드를 시용하면 파이핑 요소로 생성된 RDD를 외부 프로세스로 전달할 수 있습니다 ? 
 ``` C 
 words.pipe("wc -1").collect() #파티션당 5개 로우 반환
 ```
