@@ -134,6 +134,7 @@ words.getStorageLevel() // 저장소 수준 조회
 ```
 
 ## 12.9 체크 포인팅 : RDD를 디스크에 저장하는 방식. 반복적인 연산 시 매우 유용
+- 스파크는 단순히 캐시처럼 RDD의 데이터만 저장하는 것이 아니라 RDD의 계보까지 모두 저장
 ``` C 
 spark.sparkContext.setCheckpointDir("/some/path/for/checkpointing")
 words.checkpoint()
