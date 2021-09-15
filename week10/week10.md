@@ -124,7 +124,7 @@ export MESOS_NATIVE_JAVA_LIBRARY=<libmesos.so 파일의 경로>
 export SPARK_EXECUTOR_URI=<업로드한 spark-2.2.0.tar.gz 파일의 URL>
 ```
 ```scala
-import org.apache.spark.5ql.5parkSession
+import org.apache.spark.sql.SparkSession
 val Spark = SparkSession.builder
 .master("mesos://HOST:5050")
 .appName("my app")
