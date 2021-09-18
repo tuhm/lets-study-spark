@@ -189,3 +189,82 @@ val Spark = SparkSession.builder
 		- 스파크 어플리케이션이 실행되는 클러스터도 모니터링해야 함
 
 ![monitoring_component](./img/monitoring_component.PNG)
+
+## 18.2 모니터링 대상
+- 실행 중인 사용자 어플리케이션의 프로세스 (CPU, 메모리 사용률 등)
+- 프로세스 내부에서의 쿼리 실행 과정 (잡과 태스크)
+
+- 드라이버와 익스큐터 프로세스
+	- 스파크 어플리케이션을 모니터링할 때는 스파크 드라이버를 잘 보면 됨
+- 쿼리, 잡, 스테이지, 테스크
+
+## 18.3 스파크 로그
+- 스파크 로그와 어플리케이션 로그 모두 확인 가능
+- 스파크 로그 수준 변경
+```python
+spark.sparkContext.setLogLevel("INFO")
+```
+- 클러스터 매니저로 파일에 로그 저장 가능
+- 디버깅하려면 로그 파일이 꼭 필요함, 이미 어플리케이션은 비정상 종료되었기 때문
+
+## 18.4 스파크 UI
+- 보통은 기본 4040포트
++ Tab
+	+ Jobs : 스파크 잡
+	+ Stages : 개별 스테이지 (스테이지의 태스크)
+	+ Storage : 스파크 어플리케이션에 캐싱된 정보, 데이터 정보
+	+ Environment : 스파크 어플리케이션 구성과 설정 관련 정보
+	+ Executors : 어플리케이션에서 사용 중인 익스큐터의 상세 정보
+	+ SQL : SQL과 DataFrame을 포함한 구조적 API 쿼리 정보 제공
+	+ Job > Stage > Task
+- 코드를 통해 배워봅시다.
+```python
+spark.read\
+	.option("header", "true")\
+	.csv("/data/.../data.csv")
+	.repartition(2)\ # 파티션 2개로 쪼갬
+	.selectExpr("instr(Description, 'GLASS') >= 1 as is_glass")\
+	.groupBy("is_glass")\
+	.count()\
+	.collect()
+
+```
+- SQL Tab
+	- ![SQL_TAB](./img/sql_tab.png)
+	- DAG와 duration을 볼 수 있음
+	- 큰 상자는 스파크 태스크의 스테이지를 나타냄
+	- 스테이지의 전체 그룹은 스파크 잡
+		- ![Stage_1](./img/stage_1.png)
+		- CSV Scan Stage -> Shuffle stage 
+		- ![Stage_2](./img/stage_2.png)
+		- 프로젝션, 집계 수행 (파티션별), 해시 기반 -> shuffle > 6개 로우
+		- null 값의 통계를 반환하기 때문
+		- ![Stage_3](./img/stage_3.png)
+		- 결과 파티션 결합/집계 (해시 기반) > 3개 로우
+		- 정보 교환 혹은 파티션 재분배
++ Job Tab
+	+ ![Job_TAB](./img/job_tab.png)
+		+ stage 1 : 8개의 태스크
+			+ csv 분할하여 작업 진행, 여러 코어에 고르게 태스크 분배
+		+ stage 2 : 2개의 태스크
+			+ 파티션이 2개로 나누어짐 (repartition)
+		+ stage 3 : 200개의 태스크
+			+ 셔플 파티션의 기본 값 200
+- Task Info ![task_info](./img/task_info.png)
+	- summary metrics : 균일하지 않게 분산되어 있음
+		- 더보기 해서 상세 페이지 볼 수 있음
+	- executor 하나에서 모든 work가 진행됨
+
++ 스파크 REST API
+	+ 스파크 상태와 메트릭 확인할 수 있음 (API)
++ 스파크 UI 히스토리 서버
+	+ 이벤트 로그가 저장됨
+	+ spark.eventLog.enabled = 'true'
+
+## 18.5 디버깅 및 스파크 응급 처치
+### 18.5.1 스파크 어플리케이션이 시작되지 않는 경우
+- 징후와 증상
+	- 스파크 잡이 시작되지 않음
+	- 스파크 UI가 드라이버 노드를 제외한 클러스터의 노드 정보를 전혀 표시하지 않음
+	- 스파크 UI가 잘못된 정보를 표시함
+	
