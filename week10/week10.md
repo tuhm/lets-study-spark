@@ -188,4 +188,4 @@ val Spark = SparkSession.builder
 	- 클러스터
 		- 스파크 어플리케이션이 실행되는 클러스터도 모니터링해야 함
 
-![monitoring_component](./img/monitoring_component.png)
+![monitoring_component](./img/monitoring_component.PNG)
