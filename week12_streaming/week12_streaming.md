@@ -288,6 +288,134 @@ activityCounts.writeStream.trigger(once=True)\
 ## 
 
 # 22. 이벤트 시간과 상태 기반 처리
+## 22.1 이벤트 시간 처리
+- 이벤트가 실제로 발생한 시간 : 이벤트 시간
+	- 데이터에 기록되어 있는 시간, 이벤트가 실제로 일어난 시간
+- 이벤트가 시스템에 도착한 시간 또는 처리된 시간 : 처리 시간
+	- 스트림 처리 시스템이 데이터를 실제로 수신한 시간
+	- 데이터 위치에 따라서 버지니아에서 발생한 이벤트가 에콰도르에서 발생한 이벤트보다 먼저 데이터센터에 도착함
+		- 이벤트가 같은 시간에 일어났다 하더라도 위치 때문에 항상 버지니아에서 발생한 이벤트가 먼저 처리됨
+		- 네트워크 환경에 따라서 이벤트 전송이 느려질 수 있음
+			- 처리 시간이 항상 이벤트 시간 기준으로 정렬되어 있다고 보장할 수 없음
 
+## 22.2 상태 기반 처리
+- 오랜 시간에 걸쳐 중간 처리 정보를 사용하거나 갱신하는 경우에만 필요
+	- 이벤트 시간을 이용하거나 키에 대한 집계를 사용하는 상황에서 일어남
+	- 상태 저장소에 상태를 저장해야 함
 
+## 22.3 임의적인 상태 기반 처리
+- 상태의 유형, 갱신 방법, 제거 시점에 따라 제어가 필요할 수 있음
+	- 이에 따른 처리를 임의적인 상태 기반 처리라고 부름
+- 예시
+	- 전자 상거래 사이트에서 사용자 세션 정보를 기록하여 다음 세션에 실시간 추천 서비스를 제공할 때
+	- 웹 어플리케이션에서 사용자 세션별로 오류가 5번 발생했을 때 오류 보고 -> 카운트 기반 윈도우
+	- 중복 이벤트를 계속해서 제거해야 할 때, -> 과거의 모든 레코드를 추적
+
+## 22.4 이벤트 시간 처리의 기본
+```python
+spark.conf.set("spark.sql.shuffle.partitions", 5)
+static = spark.read.json("/data/activity-data")
+streaming = spark\
+  .readStream\
+  .schema(static.schema)\
+  .option("maxFilesPerTrigger", 10)\
+  .json("/data/activity-data")
+```
+- Creation_time : 이벤트가 생성된 시간
+- Arrival_time : 서버에 도착한 시간
+
+## 22.5 이벤트 시간 윈도우
+- 타임스탬프 컬럼을 적절한 스파크 SQL 타임스탬프 데이터 타입으로 변환
+```python
+withEventTime = streaming.selectExpr(
+  "*",
+  "cast(cast(Creation_Time as double)/1000000000 as timestamp) as event_time")
+```
+
+### 22.5.1 텀블링 윈도우
+- 주어진 윈도우에서 이벤트가 발생한 횟수를 카운트하는 연산
+	- 트리거가 실행될 때마다 마지막 트리거 이후에 수신한 데이터를 처리해 결과 테이블 갱신
+![tumbling](./img/tumbling_window.png)
+```python
+from pyspark.sql.functions import window, col
+withEventTime.groupBy(window(col("event_time"), "10 minutes")).count()\
+  .writeStream\
+  .queryName("pyevents_per_window")\
+  .format("memory")\
+  .outputMode("complete")\
+  .start()
+```
+- 10분 간격으로 발생한 이벤트 count를 집계
+
+#### 슬라이딩 윈도우
+![sliding]('./img/sliding_window.png')
+- 윈도우를 윈도우 시작 시각에서 분리하는 방법
+```python
+from pyspark.sql.functions import window, col
+withEventTime.groupBy(window(col("event_time"), "10 minutes"), col("User")).count()\
+  .writeStream\
+  .queryName("pyevents_per_window")\
+  .format("memory")\
+  .outputMode("complete")\
+  .start()
+```
+- 5분마다 시작하는 10분짜리 윈도우
+
+### 22.5.2 워터마크로 지연 데이터 제어하기
+- 데이터가 필요 없어지는 시간을 지정 
+- 스트림에서 오래된 데이터를 제거하는 데 필요한 워터마크를 반드시 지정하여야 시스템이 긴 시간 동안 부하에 노출되지 않음
+- 워터마크 : 특정 시간 이후에 처리에서 제외할 이벤트나 이벤트 집합에 대한 시간 기준
+- 지연 도착 현상 : 네트워크 지연이나 장비의 연결 실패 등으로 발생
+- 남미에 사는 고객이 만들어낸 이벤트에 약간의 지연이 발생 -> 워터마크 10분 지정
+	- 이전 이벤트보다 10분 전에 일어난 모든 이벤트를 무시한다. -> 10분 이내의 이벤트만 받아들임
+```python
+from pyspark.sql.functions import window, col
+withEventTime\
+  .withWatermark("event_time", "30 minutes")\
+  .groupBy(window(col("event_time"), "10 minutes", "5 minutes"))\
+  .count()\
+  .writeStream\
+  .queryName("pyevents_per_window")\
+  .format("memory")\
+  .outputMode("complete")\
+  .start()
+```
+- 5분 간격으로 시작하는 10분 단위 윈도우가 30분까지 지연되면 pass
+
+## 22.6 스트림에서 중복 데이터 제거하기
+- 중복 제거는 레코드 단위 처리 시스템에서 가장 처리하기 어려운 연산
+- 한 번에 많은 레코드를 처리해야 하므로 중복 제거는 처리 시스템에 큰 부하를 발생
+```python
+from pyspark.sql.functions import expr
+
+withEventTime\
+  .withWatermark("event_time", "5 seconds")\
+  .dropDuplicates(["User", "event_time"])\
+  .groupBy("User")\
+  .count()\
+  .writeStream\
+  .queryName("pydeduplicated")\
+  .format("memory")\
+  .outputMode("complete")\
+  .start()
+
+```
+- user와 event_time 기준으로 중복 제거
+
+## 22.7 임의적인 상태 기반 처리
+- 특정 키의 개수를 기반으로 윈도우 생성하기
+- 특정 시간 범위 안에 일정 개수 이상의 이벤트가 있는 경우 알림 발생시키기
+- 결정되지 않은 시간 동안 사용자 세션을 유지하고 향후 분석을 위해 세션 저장하기
+
+- 데이터의 각 그룹에 맵 연산을 수행하고 각 그룹에서 최대 한 개의 로우를 만들어냄 -> mapGroupsWithState API
+- 데이터의 각 그룹에 맵 연산을 수행하고 각 그룹에서 하나 이상의 로우를 만들어냄 -> flatMapGroupsWithState API
+
+### 22.7.1 타임아웃
+- 타임아웃은 중간 상태를 제거하기 전에 기다려야 하는 시간을 정의
+- 주기를 설정하여 시간이 설정한 주기만큼 흐르면 타임아웃이 발생
+- 타임아웃을 사용하더라도 워터마크를 반드시 지정해야 함
+
+### 22.7.2 출력 모드
+- mapGroupsWithSate = update mode
+- flatMapGroupsWithState = append, update mode
 
