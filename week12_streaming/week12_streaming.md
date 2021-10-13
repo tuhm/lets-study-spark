@@ -348,7 +348,7 @@ withEventTime.groupBy(window(col("event_time"), "10 minutes")).count()\
 - 10분 간격으로 발생한 이벤트 count를 집계
 
 #### 슬라이딩 윈도우
-![sliding]('./img/sliding_window.png')
+![sliding](./img/sliding_window.png)
 - 윈도우를 윈도우 시작 시각에서 분리하는 방법
 ```python
 from pyspark.sql.functions import window, col
