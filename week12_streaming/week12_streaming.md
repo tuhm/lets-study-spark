@@ -348,7 +348,7 @@ withEventTime.groupBy(window(col("event_time"), "10 minutes")).count()\
 - 10분 간격으로 발생한 이벤트 count를 집계
 
 #### 슬라이딩 윈도우
-![sliding](./img/sliding_window.png)
+![sliding]('./img/sliding_window.png')
 - 윈도우를 윈도우 시작 시각에서 분리하는 방법
 ```python
 from pyspark.sql.functions import window, col
@@ -418,4 +418,69 @@ withEventTime\
 ### 22.7.2 출력 모드
 - mapGroupsWithSate = update mode
 - flatMapGroupsWithState = append, update mode
+
+# 23. 운영 환경에서의 구조적 스트리밍
+## 23.1 내고장성과 체크포인팅
+- 스파크 엔진이 자동으로 관리하는 체크포인트와 WAL를 사용하도록 설정해야 함
+	- 체크포인트 경로를 쿼리로 설정해놓아야 함
+```python
+static = spark.read.json("/data/activity-data")
+streaming = spark\
+  .readStream\
+  .schema(static.schema)\
+  .option("maxFilesPerTrigger", 10)\
+  .json("/data/activity-data")\
+  .groupBy("gt")\
+  .count()
+query = streaming\
+  .writeStream\
+  .outputMode("complete")\
+  .option("checkpointLocation", "/some/python/location/")\
+  .queryName("test_python_stream")\
+  .format("memory")\
+  .start()
+```
+
+## 23.2 어플리케이션 변경하기
+- 체크포인팅은 현재까지 처리한 스트림과 모든 중간 상태를 저장함
+- 어플리케이션을 업데이트 할 때, 이전 체크포인트 데이터를 고려해야 함
+
+### 23.2.1 스트리밍 어플리케이션 코드 업데이트 하기
+- 사용자 정의 함수는 시그니처가 같은 경우에만 코드를 변경할 수 있음
+- 새로운 체크포인트 디렉터리를 사용하는 중대한 변화가 생길 경우, 반드시 비어 있는 신규 체크 포인트 디렉터리를 지정하고 처음부터 다시 처리
+
+### 23.2.2 스파크 버전 업데이트하기
+- 릴리스 노트를 확인해 스파크 버전을 업그레이드할 때 호환성이 보장되는지 확인
+- 스파크의 패치 버전 업데이트에 상관없이 이전 체크포인트 디렉토리를 사용해 재시작할 수 있음
+
+### 23.2.3 어플리케이션의 초기 규모 산정과 재조정하기
+- 클러스터는 데이터가 급증하는 상황에서도 안정적으로 처리할 수 있는 크기를 가져야 함
+- 유입률이 처리율보다 훨씬 크다면 크기를 늘리거나 어플리케이션의 익스큐터를 동적으로 추가해야 함
+- 재시작하는 방식으로 어플리케이션의 크기를 줄일 수 있음
+
+## 23.3 메트릭과 모니터링
+### 23.3.1 쿼리 상태
+- query.status : 스트림의 현재 상태를 반환
+
+### 23.3.2 최근 진행 상황
+- query.recentProgress : 쿼리 진행 상황을 확인
+
+#### 유입률과 처리율
+- 유입률 : 입력 소스에서 구조적 스트리밍 내부로 데이터가 유입되는 양
+- 처리율 : 유입된 데이터를 처리하는 속도
+- 유입률이 처리율보다 훨씬 큰 경우, 클러스터의 규모를 늘려 더 많은 데이터를 처리해야 함
+
+#### 배치 주기
+- 적정한 처리량을 얻기 위한 배치 주기를 설정
+
+### 23.3.3 스파크 UI
+- 구조적 스트리밍과 관련된 잡, 태스크 그리고 처리 메트릭을 확인할 수 있음
+
+## 23.4 알림
+- 잠재적인 문제를 발견하기 위하여 잡이 실패하거나 유입률보다 처리율이 떨어지는 경우 자동으로 알려주는 기능 필요
+- 쿼리 모니터링 및 클러스터와 전체 어플리케이션의 상태를 모니터링해야 함
+
+## 23.5 스트리밍 리스너를 사용한 고급 모니터링
+- StreamingQueryListener 클래스를 이용해 비동기 방식으로 스트리밍 쿼리 정보를 수신
+	- 다른 시스템에 자동으로 해당 정보를 전송하여 모니터링 및 알림 매커니즘 구현 가능
 
