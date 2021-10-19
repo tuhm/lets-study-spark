@@ -26,6 +26,7 @@
 *직렬화란?? Serialization 으로 객체를 저장할 수 있는 파일 형태로 변환하는 것을 말함 (Python 에서는 pickle 이 기본, Spark 에서는 Java Serializer 를 기본으로 사용함)*
 
 - RDD Transformation 을 할 때 직접 정의한 데이터 타입을 직렬화하려면 Java보다 Kyro 직렬화를 사용하자 (다만 클래스를 spark.kryo.classesToRegister 속성값에 지정해 등록해야 함)
+- RDD를 persist (캐싱)하게 되면 모든 객체가 메모리에 올라가야 하는데, 이때 RDD를 통째로 하나의 객체 단위로 저장하면 garbage collection 등 도움이 되고, 이를 위해 직렬화가 필요
 - 참고: https://ourcstory.tistory.com/149
 
 **19.1.3 클러스터 설정**
@@ -36,6 +37,8 @@
 **19.1.4 스케줄링**
 
 - Spark.scheduler.mode = FAIR 또는 —max-executor-cores 인수를 사용 (이렇게 하면 한 개의 자원이 클러스터의 자원을 다 사용하는 것은 못하게 할 수 있음)
+- 하나의 Application 은 여러개의 Job으로 이루어질 수 있는데, 순서대로 시행되면 무거운 job 이 자원을 차지할 경우, 뒤에 가벼운 job도 순서를 기다려야 함 
+- 참고: https://www.samsungsds.com/kr/insights/Spark-Cluster-job-server-2.html
 
 **19.1.5 보관용 데이터 (Archived Data)**
 
@@ -46,8 +49,10 @@
     - 압축 포맷에서 ZIP 이나 TAR 는 분할이 안되 병렬 처리가 안됨. (10개 코어가 있어도 하나만 사용함). 병렬처리가 가능한 상태에서는 gzip, bzip2, lz4를 통해 압축한 파일을 사용하자.
 - 테이블 파티셔닝
     - 날짜 같은 키 기준으로 개별 디렉터리에 파일을 저장함. 다만 너무 작은 단위로 분할하면 전체 파일 목록 (메타) 를 읽을 때 오버헤드가 발생해 좋지 않다
+    - 참고: https://sparkbyexamples.com/spark/spark-partitioning-understanding/
 - 버켓팅
     - 파티셔닝과 비슷한 개념. 다만 디렉터리로 파일을 분산시키는 것은 아니며 파티셔닝과 함께 쓰일 수도, 없이 쓰일 수도 있다. 키를 기반으로 하지 않고 데이터 사이즈를 기반으로 하기 때문에 치우침 (skew) 없이 균등하게 분산시킬 수 있어 성능과 안정성이 향상됨. (조인컬럼 기준으로 데이터를 분할해두고 조인을 한다든가)
+    - 참고: https://stackoverflow.com/questions/19128940/what-is-the-difference-between-partitioning-and-bucketing-a-table-in-hive
 - 파티셔닝이나 버켓팅을 할 때는 파일 수나 저장하려는 파일 크기도 고려해야 함. one partition = one block (데이터를 입출력하는 단위) 이라고 생각했을 때,,, 5MB 짜리로 30개 파일로 쪼갰다면, 30개 블록을 사용하게 됨.
     - 그래서 밸런스를 (최소 수십 MB로 파일 사이즈를 맞추는 게 좋음) 찾아야 한다…
     - 많은 수의 작은 파일이 있으면 네트워크와 스케줄링 부하가 증가함.
