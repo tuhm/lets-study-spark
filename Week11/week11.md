@@ -91,6 +91,11 @@
 
 ## 19.2 개별 스파크 잡, 스테이지, 태스크의 성능 튜닝을 시도하거나 코드 설계를 변경하는 직접적인 방법 
 
+*스파크 애플리케이션은 여러개의 스파크 잡으로 이루어지며, Action(어떤 연산, 즉 collect, sum 등등)은 1개의 Job 으로 부를 수 있다. 개별 잡은 여러개의 Task 로 이루어지는데, Task란 동일한 연산을 파티션 단위로 쪼개 동일하게 수행하는 것이며, 이때 한개의 Task 에 대해 한개의 Executor 가 부여된다. Task 의 집합을 Stage 로 부르는데, Stage 를 나누는 기준은 Shuffle 이 발생했는가이다 
+![task](task_and_stage.png)
+- 참고: https://greeksharifa.github.io/apache%20spark/2021/09/20/Spark/
+
+
 **19.2.1 병렬화**
 
 - Spark.default.parallelism, Spark.sql.shuffle.partitions 를 클러스터 코어 수에 따라 설정하여 병렬성을 높인다 
