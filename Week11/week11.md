@@ -5,7 +5,7 @@
 
 → 모니터링 도구로 가장 오래 실행되는 스테이지를 찾아 그 문제에 집중해 성능 최적화를 진행합니다 
 
-## 19.1 속성값을 설정하하거나 런타임 환경을 변경하는 간접적인 방법
+## 19.1 속성값을 설정하거나 런타임 환경을 변경하는 간접적인 방법
 
 **19.1.1 설계 방안**
 
@@ -23,9 +23,10 @@
 
 **19.1.2 RDD 객체 직렬화**
 
-*직렬화란?? Serialization 으로 객체를 저장할 수 있는 파일 형태로 변환하는 것을 말함 (Python 에서 pickle 을 저장한다거나,,, powerpoint 같은 파일도 프로그램 없이 열게 되면 그 자체는 직렬화된 상태로 저장되어 있음)*
+*직렬화란?? Serialization 으로 객체를 저장할 수 있는 파일 형태로 변환하는 것을 말함 (Python 에서는 pickle 이 기본, Spark 에서는 Java Serializer 를 기본으로 사용함)*
 
-- RDDTransformation 을 할 때 직접 정의한 데이터 타입을 직렬화하려면 Java보다 Kyro 직렬화를 사용하자 (다만 클래스를 spark.kryo.classesToRegister 속성값에 지정해 등록해야 함)
+- RDD Transformation 을 할 때 직접 정의한 데이터 타입을 직렬화하려면 Java보다 Kyro 직렬화를 사용하자 (다만 클래스를 spark.kryo.classesToRegister 속성값에 지정해 등록해야 함)
+- 참고: https://ourcstory.tistory.com/149
 
 **19.1.3 클러스터 설정**
 
