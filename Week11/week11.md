@@ -110,21 +110,23 @@
 
 - 같은 데이터셋을 재사용하면 매번 원시 데이터를 사용하는 것이 아니라 캐싱을 활용 (늘 유용하진 않음)
     - Interactive shell 이나 stand-alone application 에서 재사용하려 할 때는 유용함
-    - 캐싱은 지연연산인데, RDD 와 구조적 API 의 캐싱 수행 방식이 다름
+- 캐싱은 지연연산인데, RDD 와 구조적 API 의 캐싱 수행 방식이 다름
     - RDD 에서의 caching 은 물리적 데이터 (비트 값)을 캐시에 저장하고 RDD 참조를 통해 데이터를 반환
     - 구조적 API는 물리적 실행 계획을 기반으로 이뤄져 객체 참조가 아니라, 물리적 실행 계획을 참조함 (따라서 원시 데이터를 읽으려 시도했지만 누군가가 캐싱해놓은 데이터를 읽으면 혼란이 발생할 수 있음???)
-    - 저장소 레벨의 옵션들
-    - MEMORY_ONLY: RDD 를 직렬화되지 않은 자바 객체로 JVM 에 저장. JVM에 할당된 메모리보다 크면 메모리 크기를 벗어나는 파티션은 캐싱되지 않으며 필요할 때마다 재연산됨
-    - MEMORY_AND_DISK: 메모리 크기를 벗어나는 파티션을 디스크에 저장
-    - MEMORY_ONLY_SER: RDD를 직렬화된 자바 객체로 JVM에 저장 (직렬화하기 때문에 효율적이나 데이터를 읽을 때 CPU 를 더 많이 사용함)
-    - DISK_ONLY: MEMORY_ONLY_SER 와 유사하지만 메모리 크기를 벗어나는 파티션은 디스크에 기록
-    - MEMORY_ONLY_2:
-    - MeMORY_AND_DISK_2
-    - OFF_HEAP
+- 저장소 레벨의 옵션들
+| Option | Description |
+| -----  | ----------- |
+| MEMORY_ONLY| RDD 를 직렬화되지 않은 자바 객체로 JVM 에 저장. JVM에 할당된 메모리보다 크면 메모리 크기를 벗어나는 파티션은 캐싱되지 않으며 필요할 때마다 재연산됨|
+| MEMORY_AND_DISK | 메모리 크기를 벗어나는 파티션을 디스크에 저장|
+| MEMORY_ONLY_SER | RDD를 직렬화된 자바 객체로 JVM에 저장 (직렬화하기 때문에 효율적이나 데이터를 읽을 때 CPU 를 더 많이 사용함)|
+| DISK_ONLY | MEMORY_ONLY_SER 와 유사하지만 메모리 크기를 벗어나는 파티션은 디스크에 기록|
+| MEMORY_ONLY_2 | |
+| MEMORY_AND_DISK_2 | |
+| OFF_HEAP| |
 
 **19.2.6 조인**
 
-- 동등 조인을 우선적으로 사용하되 조인 순서를 변경해봄
+- 동등 조인 (Equi Join: = 연산자를 이용하는Join) 을 우선적으로 사용하되 조인 순서를 변경해봄
 - 브로드캐스트 조인 힌트를 통해 쿼리 실행 계획을 조인
 - Cartesian join 이나 outer join 은 피하고 다양한 필터링을 먼저 활용해 봄
 - Table statistics 이나 bucketing 을 사용하여 셔플 양이 많아지는 것을 방지
