@@ -1,5 +1,6 @@
 ### 6부 요약
 #### 주요 Code 정리
+
   1. Train/Test Split
 <pre>
 <code>
@@ -12,60 +13,62 @@
 <code>
   from pyspark.ml.classification import LogisticRegression
   lr = LogisticRegression(labelCol="label",featuresCol="features")
-  print lr.explainParams() *hyperparameter
+  print lr.explainParams() *hyperparameter*
   fittedLR = lr.fit(train)
-  fittedLR.transform(train).select(''label", ''prediction'').show() *predict value
+  fittedLR.transform(train).select(''label", ''prediction'').show() *predict value*
 </code>
 </pre>
 
-3. Pipeline
+  3. Pipeline
+<pre>
+<code>
 from pyspark.ml.tuning import TrainValidationSplit
 tvs = TrainValidationSplit()\
-  .setTrainRatio(0.75)\  ### Split
-  .setEstimatorParamMaps(params)\ ### Pre Processing
-  .setEstimator(pipeline)\  ### pipeline = Pipeline().setStages(stages)
-  .setEvaluator(evaluator) ### AUROC
-
+  .setTrainRatio(0.75)\  *Split*
+  .setEstimatorParamMaps(params)\ *Pre Processing*
+  .setEstimator(pipeline)\   *pipeline = Pipeline().setStages(stages)*
+  .setEvaluator(evaluator) *AUROC*
 tvsFitted = tvs.fit(train)
+</code>
+</pre>
 
-[Chapter 25. 데이터 전처리 및 엔지니어링]
+## Chapter 25. 데이터 전처리 및 엔지니어링
 
-25.1 사용 목적에 따라 모델 서식 지정하기
-- 다양한 형태의 데이터를 확보하는 가장 좋은 방법 : 변환자를 사용
+#### 25.1 사용 목적에 따라 모델 서식 지정하기
+- 다양한 형태의 데이터를 확보하는 가장 좋은 방법 -> 변환자를 사용
 - 변환자는 인수로 Dataframe을 받고 새로운 Dataframe 반환
+*sales.cache ( ) #자주 사용하는 Data의 경우 메모리에서 효율적으로 읽을수 있도록 캐시*
+- MLlib의 경우 **Null이 존재하면 작동을 하지 않은 경우가 많으므로 디버깅 할때 가장 먼저 확인**
 
-sales.cache ( ) #자주 사용하는 Data의 경우 메모리에서 효율적으로 읽을수 있도록 캐시
-sales.show ( )
-
-- MLlib의 경우 Null이 존재하면 작동을 하지 않은 경우가 많으므로 디버깅 할때 가장 먼저 확인
-
-25.2 변환자
-25.4 전처리 추정자 
+#### 25.4 전처리 추정자 
 - 전처리를 위한 또 다른 도구 
 - 수행하려는 변환이 입력 컬럼에 대한 데이터 또는 정보로 초기화 되어야 할 때 필요
-- 추정자는 단순 변환을 위해 맹목적으로 적용하는 일반 변환자 유형과 데이터에 따라 변환을 수행하는 추정자 유형
-ex. standardscaler 
+- 추정자는 단순 변환을 위해 맹목적으로 적용하는 *일반 변환자 유형* 과 데이터에 따라 변환을 수행하는 *추정자 유형*
 
-25.3.1 변환자 속성 정의하기
-25.4 고수준 변환자
-25.4.1 RFormula
+#### 25.4 고수준 변환자
+##### 25.4.1 RFormula
 - 일반적인 형태의 데이터에 사용할 수 있는 가장 간편한 변환자
-- 숫자 컬럼은 Double 타입 변환, 원-핫 인코딩은 되지는앟음
+- 숫자 컬럼은 Double 타입 변환, 원-핫 인코딩은 되지 않음
 - Label 컬럼이 String 타입인 경우 먼저 StringIndexer를 사용해서 Double 타입으로 변환
-- 예시
+<pre>
+<code>
 from pyspark.ml.feature import RFormula
 supervised = RFormula(formula="lab ~ . + color:value1 + color:value2")
 supervised.fit(simpleDF).transform(simpleDF).show()
-* '~' 함수에서 타깃과 항을 분리
-*'+' 연결 기호, '+0' 은 절편 제거
-*'-' 삭제 기호 '-1' 절편제거
-*':' 상호작용 (수치평 값이나 이진화된 범주값에 대한 곱셈)
-*'.' 타깃/종속변수를 제외한 모든 컬럼
+</code>
+</pre>
+- 참고
+  - '~' 함수에서 타깃과 항을 분리
+  - '+' 연결 기호, '+0' 은 절편 제거
+  - '-' 삭제 기호 '-1' 절편제거
+  - ':' 상호작용 (수치평 값이나 이진화된 범주값에 대한 곱셈)
+  - '.' 타깃/종속변수를 제외한 모든 컬럼
 
-25.4.2 SQL 변환자 
+##### 25.4.2 SQL 변환자 
 - SQL Transformer 사용
 - SQL 에서 사용하는 모든 select 문은 유효함. 단, 테이블 이름 대신 THIS 키워드 사용
-- 예시
+<pre>
+<code>
 from pyspark.ml.feature import SQLTransformer
 basicTransformation = SQLTransformer()\
   .setStatement("""
@@ -74,27 +77,33 @@ basicTransformation = SQLTransformer()\
     GROUP BY CustomerID
   """)
 basicTransformation.transform(sales).show()
+</code>
+</pre>
 
-25.4.3 벡터 조합기
+##### 25.4.3 벡터 조합기
 - VectorAssempler는 사용자가 생성하는 거의 모든 단일 파이프라인에서 사용하게될 도구
 - 모든 특징을 하나의 큰 벡터로 연결 하여 추정자에 전달하는 기능 제공
 - 파이프 라인의 마지막 단계에서 사용
-- 예시
+<pre>
+<code>
 from pyspark.ml.feature import VectorAssembler
 va = VectorAssembler().setInputCols(["int1", "int2", "int3"])
 va.transform(fakeIntDF).show()
--> 아웃풋 [1, 2, 3] 
+-----------------> 아웃풋 [1, 2, 3] 
+</code>
+</pre>
 
-25.5 연속형 특징 처리하기
+#### 25.5 연속형 특징 처리하기
 - 버켓팅 : 연속형 특징을 범주형으로 변환
 - 스케일링 및 정규화 
 - 이러한 변환자 사용을 위해서는 Data type이 Double Type이어야함
 - contDF = spark.range(20).selectExpr("cast(id as double)") # 형변환
 
-25.5.1 버켓팅
+##### 25.5.1 버켓팅
 - Bucketizer 사용
 - 분할값 (기준치)은 df의 최솟값 보다 작아야하며, 최댓값 보다 커야 하며, 최소 3개 이상의 값을 지정해서 두개 이상의 버켓을 만들어야 함
-- 예시
+<pre>
+<code>
 from pyspark.ml.feature import Bucketizer
 bucketBorders = [-1.0, 5.0, 10.0, 250.0, 600.0]
 bucketer = Bucketizer().setSplits(bucketBorders).setInputCol("id")
@@ -102,16 +111,22 @@ bucketer.transform(contDF).show()
 -> 0 : -1 <= x < 5 
 -> 1: 5 <= x < 10
 -> 2: 10 <= x < 250
+</code>
+</pre>
 - 백분위수로도 분할 가능. QunatileDixcretizer 로 수행
-- 예시
+<pre>
+<code>
 from pyspark.ml.feature import QuantileDiscretizer
 bucketer = QuantileDiscretizer().setNumBuckets(5).setInputCol("id").setOutputCol("result")
 fittedBucketer = bucketer.fit(contDF)
 fittedBucketer.transform(contDF).show()
+</code>
+</pre>
 
-25.5.2 스케일링과 정규화
+##### 25.5.2 스케일링과 정규화
 - MLlib에서는 항상 Vector 타입의 컬럼에서 이 작업을 수행
-25.5.3 
+
+##### 25.5.3 
 [StandardScaler]
 - 평균이 0 이고 표준편차가 1인 분포를 갖도록 데이터를 표준화
 - withStd 플래그는 Data를 표준편차가 1이 되도록 스케일링 하는 것
