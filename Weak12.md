@@ -1,14 +1,22 @@
 ### 6부 요약
 #### 주요 Code 정리
-1. Train/Test Split
+  1. Train/Test Split
+<pre>
+<code>
   train, test = preparedDF.randomSplit([0.7, 0.3])
+</code>
+</pre>
 
 2. Logistic 
+<pre>
+<code>
   from pyspark.ml.classification import LogisticRegression
   lr = LogisticRegression(labelCol="label",featuresCol="features")
   print lr.explainParams() *hyperparameter
   fittedLR = lr.fit(train)
   fittedLR.transform(train).select(''label", ''prediction'').show() *predict value
+</code>
+</pre>
 
 3. Pipeline
 from pyspark.ml.tuning import TrainValidationSplit
