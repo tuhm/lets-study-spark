@@ -3,14 +3,14 @@
 > > 1. Train/Test Split
 ``` train, test = preparedDF.randomSplit([0.7, 0.3]) ```
 
-2. Logistic 
-from pyspark.ml.classification import LogisticRegression
-lr = LogisticRegression(labelCol="label",featuresCol="features")
-# Hyper parameter 출력
+> > 2. Logistic 
+``` from pyspark.ml.classification import LogisticRegression
+lr = LogisticRegression(labelCol="label",featuresCol="features") ```
+``` # Hyper parameter 출력
 print lr.explainParams()
 fittedLR = lr.fit(train)
 # Predict Value
-fittedLR.transform(train).select(''label", ''prediction'').show()
+fittedLR.transform(train).select(''label", ''prediction'').show() ```
 
 3. Pipeline
 from pyspark.ml.tuning import TrainValidationSplit
