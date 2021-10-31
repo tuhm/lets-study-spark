@@ -39,6 +39,8 @@ tvsFitted = tvs.fit(train)
 - 변환자는 인수로 Dataframe을 받고 새로운 Dataframe 반환
 - sales.cache ( ) #자주 사용하는 Data의 경우 메모리에서 효율적으로 읽을수 있도록 캐시
 - MLlib의 경우 **Null이 존재하면 작동을 하지 않은 경우가 많으므로 디버깅 할때 가장 먼저 확인**
+- 변환자(transformer): 한 데이터셋을 다른 데이터셋으로 변환. 스파크 ML의 머신러닝 모델도 데이터셋에 예측 결과를 더하는 변환 작업을 수행하므로 변환자에 해당한다. 변환자의 핵심 메서드인 **transform**은 DataFrame을 필수 인수로 받고, 선택 인수로 매개변수 집합을 받는다.
+- 추정자(estimator): 주어진 데이터셋을 **학습해 변환자를 생성**. 추정자의 결과는 학습된 선형 회귀 모델(변환자)이라고 할 수 있다. 추정자의 핵심 메서드인 **fit**은 DataFrame을 필수 인수로 받고, 선택 인수로 매개변수 집합을 받는다.
 
 #### 25.4 전처리 추정자 
 - 전처리를 위한 또 다른 도구 
@@ -97,10 +99,10 @@ va.transform(fakeIntDF).show()
 - 버켓팅 : 연속형 특징을 범주형으로 변환
 - 스케일링 및 정규화 
 - 이러한 변환자 사용을 위해서는 Data type이 Double Type이어야함
-- contDF = spark.range(20).selectExpr("cast(id as double)") # 형변환
+- contDF = spark.range(20).selectExpr("cast(id as double)") *형변환*
 
 ##### 25.5.1 버켓팅
-- Bucketizer 사용
+- Bucketizer 사용 (그룹화, Binning)
 - 분할값 (기준치)은 df의 최솟값 보다 작아야하며, 최댓값 보다 커야 하며, 최소 3개 이상의 값을 지정해서 두개 이상의 버켓을 만들어야 함
 <pre>
 <code>
@@ -162,8 +164,8 @@ fittedmaScaler.transform(scaleDF).show()
 </code>
 </pre>
 
-[ElementwiseProduct]
-- 벡터의 각 값을 임의의 값으로 조정
+[Elementwise Product]
+- 벡터의 각 값을 임의의 값으로 조정 (행렬의 곱으로 조정)
 <pre>
 <code>
 from pyspark.ml.feature import ElementwiseProduct
@@ -178,6 +180,7 @@ scalingUp.transform(scaleDF).show()
 
 [Normalizer]
 - 여러가지 표준 중 하나를 사용하여 다차원 벡터를 스케일링
+- 위 방안들은 각 통계치를 이용하나, Normalizer는 각 로우마다 정규화 -> 그 거리의 기준을 'p'를 이용해 지정
 - 파라미터 'p' 로 지정 (맨해튼 표준 p '1', 유클리드 표준 p '2')
 <pre>
 <code>
@@ -200,7 +203,7 @@ idxRes = lblIndxr.fit(simpleDF).transform(simpleDF)
 idxRes.show()
 </code>
 </pre>
-- 옵션 : 추후 없던 값이 나타났을 때 무시하거나 오류를 뱉애내는
+- 옵션 : 추후 없던 값이 나타났을 때 무시하거나 오류를 뱉애내는 옵션 지정 가능
 <pre>
 <code>
 valIndexer.SetHandlelnvalid("Skip")
@@ -220,6 +223,7 @@ labelReverse.transform(idxRes).show()
 ##### 25.6.3 벡터 인덱싱하기
 - vectorIndexer는 벡터 내에 존재하는 범주형 변수를 대상으로 하는 유용한 도구
 - 입력 벡터 내에 존재하는 범주형 데이터를 자동으로 찾아서 0부터 시작하는 카테고리 색인을 사용하여 범주형 특징으로 변환
+- 연속형 변수이지만 값이 적을 경우 범주형으로 인식 할 수 
 <pre>
 <code>
 from pyspark.ml.feature import VectorIndexer
@@ -281,13 +285,14 @@ stops.transform(tokenized).show()
 </pre>
 
 ##### 25.7.3 단어 조합 만들기 
-- n_gram
+- n_gram 을 만들어 분석에 활용
 - 문장의 구조와 정보를 기존의 모든 단어를 개별적으로 살펴보는것보다 더 잘 포착하기 위해 사용
 - a b c d -> 2 n_gram (bigram) -> (a,b) (b,c) (c,d)
 
 ##### 25.7.4 단어를 숫자로 변환하기
 - 모델에서 사용하기 위해 단어와 단어 조합수를 산출
-- CountVectorizer (출현빈도), TF - IDF(가중치 반영, 희귀한 단어에 가중치를 부여, 예를들어 'the' 와 같은 단어는 가중치가 적음) 사용 가능
+- CountVectorizer (출현빈도)
+- TF - IDF (가중치 반영, 희귀한 단어에 가중치를 부여, 예를들어 'the' 와 같은 단어는 가중치가 적음) 사용 가능
 <pre>
 <code>
 from pyspark.ml.feature import CountVectorizer
@@ -306,6 +311,7 @@ fittedCV.transform(tokenized).show(10, False)
 - 단어 집합의 벡터 표현을 계산하기 위한 딥러닝 기반 도구
 - 비슷한 단어를 벡터 공간에서 서로 가깝게 배치하여 단어를 일반화 (수치화)
 - 단어간 관계를 파악하는데 특히 유용
+- 참고 자료 : https://ratsgo.github.io/from%20frequency%20to%20semantics/2017/03/30/word2vec/
 <pre>
 <code>
 # Learn a mapping from words to Vectors.
@@ -320,7 +326,7 @@ for row in result.collect():
 </pre>
 
 #### 25.8 특징 조작하기 
-##### 25.8.1 주성분 분석
+##### 25.8.1 주성분 분석 (PCA)
 - 데이터의 가장 중요한 측면을 찾는 수학적 기법
 - 대규모 입력 데이터 셋에서 총 특징 수를 줄이기 위해 사용
 <pre>
