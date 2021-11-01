@@ -12,7 +12,7 @@
 <pre>
 <code>
   from pyspark.ml.classification import LogisticRegression
-  lr = LogisticRegression(labelCol="label",featuresCol="features")
+  lr = LogisticRegression(labelCol="label" ,featuresCol="features")
   print lr.explainParams() *hyperparameter*
   fittedLR = lr.fit(train)
   fittedLR.transform(train).select(''label", ''prediction'').show() *predict value*
@@ -35,9 +35,9 @@ tvsFitted = tvs.fit(train)
 ## Chapter 25. 데이터 전처리 및 엔지니어링
 
 #### 25.1 사용 목적에 따라 모델 서식 지정하기
-- 다양한 형태의 데이터를 확보하는 가장 좋은 방법 -> 변환자를 사용
+- 다양한 형태의 데이터를 확보하는 가장 좋은 방법 : 변환자를 사용
 - 변환자는 인수로 Dataframe을 받고 새로운 Dataframe 반환
-- sales.cache ( ) #자주 사용하는 Data의 경우 메모리에서 효율적으로 읽을수 있도록 캐시
+- sales.cache ( ) **자주 사용하는 Data의 경우 메모리에서 효율적으로 읽을수 있도록 캐시**
 - MLlib의 경우 **Null이 존재하면 작동을 하지 않은 경우가 많으므로 디버깅 할때 가장 먼저 확인**
 - 변환자(transformer): 한 데이터셋을 다른 데이터셋으로 변환. 스파크 ML의 머신러닝 모델도 데이터셋에 예측 결과를 더하는 변환 작업을 수행하므로 변환자에 해당한다. 변환자의 핵심 메서드인 **transform**은 DataFrame을 필수 인수로 받고, 선택 인수로 매개변수 집합을 받는다.
 - 추정자(estimator): 주어진 데이터셋을 **학습해 변환자를 생성**. 추정자의 결과는 학습된 선형 회귀 모델(변환자)이라고 할 수 있다. 추정자의 핵심 메서드인 **fit**은 DataFrame을 필수 인수로 받고, 선택 인수로 매개변수 집합을 받는다.
@@ -47,10 +47,9 @@ tvsFitted = tvs.fit(train)
 - 수행하려는 변환이 입력 컬럼에 대한 데이터 또는 정보로 초기화 되어야 할 때 필요
 - 추정자는 단순 변환을 위해 맹목적으로 적용하는 *일반 변환자 유형* 과 데이터에 따라 변환을 수행하는 *추정자 유형*
 
-#### 25.4 고수준 변환자
 ##### 25.4.1 RFormula
-- 일반적인 형태의 데이터에 사용할 수 있는 가장 간편한 변환자
-- 숫자 컬럼은 Double 타입 변환, 원-핫 인코딩은 되지 않음
+- 일반적인 형태의 데이터에 사용할 수 있는 **가장 간편한 변환자**
+- 숫자 컬럼은 Double 타입 변환
 - Label 컬럼이 String 타입인 경우 먼저 StringIndexer를 사용해서 Double 타입으로 변환
 <pre>
 <code>
@@ -86,20 +85,26 @@ basicTransformation.transform(sales).show()
 - VectorAssempler는 사용자가 생성하는 거의 모든 단일 파이프라인에서 사용하게될 도구
 - 모든 특징을 하나의 큰 벡터로 연결 하여 추정자에 전달하는 기능 제공
 - 파이프 라인의 마지막 단계에서 사용
+- 다양한 변환자를 사용하여 여러 가지 조작을 수행하고 그에 대한 모든 결과를 모아야 하는 경우 유용
 <pre>
 <code>
 from pyspark.ml.feature import VectorAssembler
 va = VectorAssembler().setInputCols(["int1", "int2", "int3"])
 va.transform(fakeIntDF).show()
------------------> 아웃풋 [1, 2, 3] 
+-----------------> int1 : 1, int2 :2 , int3 :3 -> 아웃풋 [1, 2, 3] 
 </code>
 </pre>
 
 #### 25.5 연속형 특징 처리하기
 - 버켓팅 : 연속형 특징을 범주형으로 변환
 - 스케일링 및 정규화 
-- 이러한 변환자 사용을 위해서는 Data type이 Double Type이어야함
-- contDF = spark.range(20).selectExpr("cast(id as double)") *형변환*
+- 이러한 변환자 사용을 위해서는 Data type이 **Double Type이어야함**
+- 형변환 : 
+<pre>
+<code>
+contDF = spark.range(20).selectExpr("cast(id as double)")
+</code>
+</pre>
 
 ##### 25.5.1 버켓팅
 - Bucketizer 사용 (그룹화, Binning)
@@ -126,13 +131,13 @@ fittedBucketer.transform(contDF).show()
 </pre>
 
 ##### 25.5.2 스케일링과 정규화
-- MLlib에서는 항상 Vector 타입의 컬럼에서 이 작업을 수행
+- MLlib에서는 항상 **Vector 타입의 컬럼에서 이 작업을 수행**
 
 ##### 25.5.3 
 [StandardScaler]
 - 평균이 0 이고 표준편차가 1인 분포를 갖도록 데이터를 표준화
 - withStd 플래그는 Data를 표준편차가 1이 되도록 스케일링 하는 것
-- withMean플래그는 스케일링 하기전에 데이터를 센터링(centering)
+- withMean 플래그는 스케일링 하기전에 데이터를 센터링(centering)
 <pre>
 <code>
 from pyspark.ml.feature import StandardScaler
@@ -180,7 +185,7 @@ scalingUp.transform(scaleDF).show()
 
 [Normalizer]
 - 여러가지 표준 중 하나를 사용하여 다차원 벡터를 스케일링
-- 위 방안들은 각 통계치를 이용하나, Normalizer는 각 로우마다 정규화 -> 그 거리의 기준을 'p'를 이용해 지정
+- 위 방안들은 각 통계치를 이용하나, **Normalizer는 각 로우마다 정규화 -> 그 거리의 기준을 'p'를 이용해 지정**
 - 파라미터 'p' 로 지정 (맨해튼 표준 p '1', 유클리드 표준 p '2')
 <pre>
 <code>
@@ -203,11 +208,11 @@ idxRes = lblIndxr.fit(simpleDF).transform(simpleDF)
 idxRes.show()
 </code>
 </pre>
-- 옵션 : 추후 없던 값이 나타났을 때 무시하거나 오류를 뱉애내는 옵션 지정 가능
+- 옵션 : 추후 없던 값이 나타났을 때, 무시하거나 오류를 뱉애내는 옵션 지정 가능
 <pre>
 <code>
 valIndexer.SetHandlelnvalid("Skip")
-valIndexer.fit(simpleDF).setHandlelnvalid(''skip")
+valIndexer.fit(simpleDF).setHandlelnvalid("skip")
 </code>
 </pre>
 
@@ -221,9 +226,9 @@ labelReverse.transform(idxRes).show()
 </pre>
 
 ##### 25.6.3 벡터 인덱싱하기
-- vectorIndexer는 벡터 내에 존재하는 범주형 변수를 대상으로 하는 유용한 도구
+- vectorIndexer는 **벡터 내에 존재하는 범주형 변수를 대상으로 하는 유용한 도구**
 - 입력 벡터 내에 존재하는 범주형 데이터를 자동으로 찾아서 0부터 시작하는 카테고리 색인을 사용하여 범주형 특징으로 변환
-- 연속형 변수이지만 값이 적을 경우 범주형으로 인식 할 수 
+- 연속형 변수이지만 값이 적을 경우 범주형으로 인식 할 수 있으므로 유의
 <pre>
 <code>
 from pyspark.ml.feature import VectorIndexer
@@ -246,6 +251,7 @@ indxr.fit(idxIn).transform(idxIn).show()
 <pre>
 <code>
 from pyspark.ml.feature import OneHotEncoder, StringIndexer
+
 lblIndxr = StringIndexer().setInputCol("color").setOutputCol("colorInd")
 colorLab = lblIndxr.fit(simpleDF).transform(simpleDF.select("color"))
 ohe = OneHotEncoder().setInputCol("colorInd")
@@ -257,14 +263,13 @@ ohe.transform(colorLab).show()
 
 ##### 25.7.1 텍스트 토큰화 하기
 - 토큰화는 자유형 텍스트를 '토큰' 또는 개별 단어 목록으로 변환하는 프로세스
+- 트콘화는 문장을 단어 단위 (공백으로 인식)로 분리
 - Tokenizer 클래스를 사용
 <pre>
 <code>
 from pyspark.ml.feature import Tokenizer
 tkn = Tokenizer().setInputCol("Description").setOutputCol("DescOut")
-tokenized = tkn.transform(sales.select("Description"))
-tokenized.show(20, False)
--> 문장을 단어 단위 (공백으로 인식)로 분리
+tokenized = tkn.transform(sales.select("Description")) 
 </code>
 </pre>
 - RegexTokenizer를 이용하면 정규 표현식을 이용한 Tokenizer  가능
@@ -285,14 +290,23 @@ stops.transform(tokenized).show()
 </pre>
 
 ##### 25.7.3 단어 조합 만들기 
-- n_gram 을 만들어 분석에 활용
+- "n_gram" 을 만들어 분석에 활용
 - 문장의 구조와 정보를 기존의 모든 단어를 개별적으로 살펴보는것보다 더 잘 포착하기 위해 사용
 - a b c d -> 2 n_gram (bigram) -> (a,b) (b,c) (c,d)
+<pre>
+<code>
+from pyspark.ml.feature import NGram
+unigram = NGram().setInputCol("DescOut").setN(1)
+bigram = NGram().setInputCol("DescOut").setN(2)
+unigram.transform(tokenized.select("DescOut")).show(10, False)
+bigram.transform(tokenized.select("DescOut")).show(10, False)
+</code>
+</pre>
 
 ##### 25.7.4 단어를 숫자로 변환하기
 - 모델에서 사용하기 위해 단어와 단어 조합수를 산출
-- CountVectorizer (출현빈도)
-- TF - IDF (가중치 반영, 희귀한 단어에 가중치를 부여, 예를들어 'the' 와 같은 단어는 가중치가 적음) 사용 가능
+  - 1. CountVectorizer (출현빈도)
+  - 2. TF - IDF (가중치 반영, 희귀한 단어에 가중치를 부여, 예를들어 'the' 와 같은 단어는 가중치가 적음) 사용 가능
 <pre>
 <code>
 from pyspark.ml.feature import CountVectorizer
@@ -315,6 +329,7 @@ fittedCV.transform(tokenized).show(10, False)
 <pre>
 <code>
 # Learn a mapping from words to Vectors.
+# vectorSize : Output 수
 word2Vec = Word2Vec(vectorSize=3, minCount=0, inputCol="text",
   outputCol="result")
 model = word2Vec.fit(documentDF)
@@ -352,10 +367,13 @@ pe.transform(scaleDF).show()
 ##### 25.9.1 ChiSqSelector
 - 통계적 검정을 활용하여 예측하려는 레이블과 독립적이지 않은 특징을 식별하고 관련 없는 특징을 삭제
 - 카이제곱 겁정을 기반으로 특징을 선택하는 기준은 percentile, numTopfeatures 등 여러가지 방법이 있음
+- 참고 코드 : https://spark.apache.org/docs/2.2.0/ml-features.html#feature-selectors
+- 참고 코드 : https://databricks.com/session/building-custom-ml-pipelinestages-for-feature-selection
 
 #### 25.10 고급 주제
 ##### 25.10.1 변환자 저장하기
-- 변환자를 개별적으로 유지하려면 장착된 변환자에 wirte 메서드를 사용하고 위치를 지정
+- 변환자를 개별적으로 유지하려면 장착된 변환자에 **wirte 메서드를 사용하고 위치를 지정**
+- 다시 사용할 때는 load 기능 이용
 <pre>
 <code>
 fittedPCA = pca.fit(scaleDF)
