@@ -51,11 +51,15 @@ print(lrModel.intercept)
 </pre>
 - ref : https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.ml.classification.LogisticRegression.html
 
-| HP | Desc | value | 기타 |
-| ----  | ---- | ---- | ---- |
-| family | 이진/다중 클래스 설정 | true/false | 기타 |
-| elasticNetParam | 알파값 설정, 알파값에 따라 regularization 방식 및 정도 정해짐 | 0~1 
-| - alpha = 1, it is an L1 penalty -> Lasso / 변수 축소 - alpha = 0  the penalty is an L2 penalty -> Ridge 가중치 축소  0 < alpha < 1, elastic net / loss function에 regularization term이 coef의 절대값 항(Lasso)과 coef의 제곱항(Ridge)이 함께 사용  - 상관성이 높은 변수 사이에서 Lasso를 사용하면 그 중 하나를 랜덤으로 선택하여 계수 축소하기 때문에, 실제로 가장 중요한 변수가 선택되지 않을 리스크 있음  - Elastic net의 경우, 상관성 높은 다수의 변수들을 모두 선택하거나 제거 -> group effect 유도  - 결론적으로 변수 선택 기능도 있음 |
+
+- family : 이진/다중 클래스 설정 
+- elasticNetParam : 알파값 설정, 알파값에 따라 regularization 방식 및 정도 정해짐 
+  - alpha = 1, it is an L1 penalty -> Lasso / 변수 축소 
+  - alpha = 0  the penalty is an L2 penalty -> Ridge 가중치 축소  
+  - 0 < alpha < 1, elastic net / loss function에 regularization term이 coef의 절대값 항(Lasso)과 coef의 제곱항(Ridge)이 함께 사용  
+    - 상관성이 높은 변수 사이에서 Lasso를 사용하면 그 중 하나를 랜덤으로 선택하여 계수 축소하기 때문에, 실제로 가장 중요한 변수가 선택되지 않을 리스크 있음  
+    - Elastic net의 경우, 상관성 높은 다수의 변수들을 모두 선택하거나 제거 -> group effect 유도  
+    - - 결론적으로 변수 선택 기능도 있음
 ![스크린샷 2021-11-08 07 52 29](https://user-images.githubusercontent.com/36292871/140664888-6b1ca62f-e81a-4939-8a08-b8791fa9b303.png)
 ![스크린샷 2021-11-08 08 03 23](https://user-images.githubusercontent.com/36292871/140665183-2c4eafc3-b6ce-433b-89c4-d8e723345a5d.png)
 
