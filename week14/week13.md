@@ -37,7 +37,7 @@
 ### 26.4 로지스틱 회귀
 - 하나의 개별 특징과 특정 가중치를 결합하여 특정 클래스에 속할 확률을 얻는 선형 방법론
 - 
-#### 26.4.1 하이퍼파라미터
+#### 하이퍼파라미터
 <pre>
 <code>
 from pyspark.ml.classification import LogisticRegression
@@ -45,8 +45,28 @@ lr = LogisticRegression()
 print lr.explainParams() # see all parameters
 lrModel = lr.fit(bInput)
 
+# Results
+lowerBoundsOnCoefficients: The lower bounds on coefficients if fitting under bound constrained optimization. The bound matrix must be compatible with the shape (1, number of features) for binomial regression, or (number of classes, number of features) for multinomial regression. (undefined)
+lowerBoundsOnIntercepts: The lower bounds on intercepts if fitting under bound constrained optimization. The bounds vector size must beequal with 1 for binomial regression, or the number oflasses for multinomial regression. (undefined)
+maxIter: max number of iterations (>= 0). (default: 100)
+predictionCol: prediction column name. (default: prediction)
+probabilityCol: Column name for predicted class conditional probabilities. Note: Not all models output well-calibrated probability estimates! These probabilities should be treated as confidences, not precise probabilities. (default: probability)
+rawPredictionCol: raw prediction (a.k.a. confidence) column name. (default: rawPrediction)
+regParam: regularization parameter (>= 0). (default: 0.0)
+standardization: whether to standardize the training features before fitting the model. (default: True)
+threshold: Threshold in binary classification prediction, in range [0, 1]. If threshold and thresholds are both set, they must match.e.g. if threshold is p, then thresholds must be equal to [1-p, p]. (default: 0.5)
+thresholds: Thresholds in multi-class classification to adjust the probability of predicting each class. Array must have length equal to the number of classes, with values > 0, excepting that at most one value may be 0. The class with largest value p/t is predicted, where p is the original probability of that class and t is the class's threshold. (undefined)
+tol: the convergence tolerance for iterative algorithms (>= 0). (default: 1e-06)
+upperBoundsOnCoefficients: The upper bounds on coefficients if fitting under bound constrained optimization. The bound matrix must be compatible with the shape (1, number of features) for binomial regression, or (number of classes, number of features) for multinomial regression. (undefined)
+upperBoundsOnIntercepts: The upper bounds on intercepts if fitting under bound constrained optimization. The bound vector size must be equal with 1 for binomial regression, or the number of classes for multinomial regression. (undefined)
+weightCol: weight column name. If this is not set or empty, we treat all instance weights as 1.0. (undefined)
 print(lrModel.coefficients)
 print(lrModel.intercept)
+
+# Results
+[6.848741325749501,0.3535658900824287,14.814900276155212]
+-10.22569586428697
+
 </code>
 </pre>
 - ref : https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.ml.classification.LogisticRegression.html
@@ -67,7 +87,11 @@ print(lrModel.intercept)
 - regParam : regularization lambda 값 / 0~1 사이 설정
 - standardization : scaling 적용 여부
 
-#### 26.4.2 학습 파라미터
+#### 학습 파라미터
 - maxIter : 총 학습 반복 횟수
 - tol : 학습 반복 임계값 설정
 - weightCol : 사전 가중치 부여
+
+#### 예측 파라미터
+- threshold : 클래스 예측 확률 임곗값 (default=0.5)
+- thresholds : 다중 클래스 경우
