@@ -50,6 +50,7 @@ print(lrModel.intercept)
 </code>
 </pre>
 - ref : https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.ml.classification.LogisticRegression.html
+
 - family : 이진/다중 클래스 설정
 - elasticNetParam : 0과 1 사이의 알파값 설정, 알파값에 따라 regularization 방식 및 정도 정해짐
   - alpha = 1, it is an L1 penalty -> Lasso / 변수 축소
@@ -65,4 +66,4 @@ print(lrModel.intercept)
 - regParam : regularization lambda 값 / 0~1 사이 설정
 - standardization : scaling 적용 여부
 
-#### 26.4.2 
+#### 26.4.2 학습 
