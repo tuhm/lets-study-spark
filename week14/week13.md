@@ -60,6 +60,7 @@ tol: the convergence tolerance for iterative algorithms (>= 0). (default: 1e-06)
 upperBoundsOnCoefficients: The upper bounds on coefficients if fitting under bound constrained optimization. The bound matrix must be compatible with the shape (1, number of features) for binomial regression, or (number of classes, number of features) for multinomial regression. (undefined)
 upperBoundsOnIntercepts: The upper bounds on intercepts if fitting under bound constrained optimization. The bound vector size must be equal with 1 for binomial regression, or the number of classes for multinomial regression. (undefined)
 weightCol: weight column name. If this is not set or empty, we treat all instance weights as 1.0. (undefined)
+
 print(lrModel.coefficients)
 print(lrModel.intercept)
 
