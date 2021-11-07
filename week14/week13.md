@@ -67,4 +67,7 @@ print(lrModel.intercept)
 - regParam : regularization lambda 값 / 0~1 사이 설정
 - standardization : scaling 적용 여부
 
-#### 26.4.2 학습 
+#### 26.4.2 학습 파라미터
+- maxIter : 총 학습 반복 횟수
+- tol : 학습 반복 임계값 설정
+- weightCol : 사전 가중치 부여
