@@ -495,4 +495,9 @@ weightCol: weight column name. If this is not set or empty, we treat all instanc
 </code>
 </pre>
 
-### 26.8 
+### 26.8 분류와 자동 모델 튜닝을 위한 평가기
+- 위 예시 코드 참고
+
+### 26.10 일대다 분류기
+- 다중 클래스 분류 지원하지 않을 경우엔, 1-vs-rest 분류기 활용하여 binary classification으로 바꿔줌
+- binary classification 중 각각의 target class에 대한 확률값이 제일 높은 class를 선택
