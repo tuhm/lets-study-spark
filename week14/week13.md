@@ -101,14 +101,14 @@ print(lrModel.intercept)
 - 과적합 방지 필요
 
 #### 하이퍼파라미터
-- maxDepth(= max_depth) : 의사결정 나무 최대 깊이 지정 : 과적합 방지
+- maxDepth(= max_depth) : 의사결정 나무 최대 깊이 지정 / 과적합 방지
 - maxBins : 연속형 변수를 범주형 변수로 변환할시 binning의 최대 갯수 / 클수록 세분화된 분석 가능 
 - impurity(= criterion) : 나무 분기의 기준이 되는 불순도 측정 기준 
   - entropy
   - gini
   - ref : https://ratsgo.github.io/machine%20learning/2017/03/26/tree/
-- minInfoGain(= min_impurity_decrease) : 나무 분기를 위한 최소 정보 획득 정도 설정 / default : 0
-- minInstancePerNode(= min_sample_leat) : 
+- minInfoGain(= min_impurity_decrease) : 나무 분기를 위한 최소 정보 획득 정도 설정 / default : 0 / 과적합 방지
+- minInstancePerNode(= min_sample_leaf) : 나무 분기를 위해 갈라진 노드에 필요한 최소 instance 갯수 / 과적합 방지 
 
 #### 학습 파라미터
 - checkpointInterval : 학습 과정 동안 진행되는 모델의 작업 내용 저장, 클러스터 내 특정 노드가 충돌할 경우에도 이전까지 진행된 작업 내용 복구 가능
