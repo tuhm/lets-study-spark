@@ -232,6 +232,7 @@ subsamplingRate: Fraction of the training data used for learning each decision t
 </pre>
 
 ### Spark ML 예시 코드
+#### 데이터 로드 및 DataFrame 생성
 <pre>
 <code>
 val creditDf = spark.read.format("csv")
@@ -322,7 +323,6 @@ pipelinePredictionDf.show(10)
 </pre>
 
 #### Model Tuning with CrossValidator
-
 <pre>
 <code>
 val paramGrid = new ParamGridBuilder()
