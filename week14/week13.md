@@ -89,7 +89,7 @@ print(lrModel.intercept)
 
 #### 학습 파라미터
 - maxIter : 총 학습 반복 횟수
-- tol : 학습 반복 임계값 설정
+- tol : 학습 반복 임계값 설정 / converge해서 loss가 이 임계치만큼 줄지 않으면 학습 중지
 - weightCol : 사전 가중치 부여
 
 #### 예측 파라미터
