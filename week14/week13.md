@@ -102,8 +102,6 @@ print(lrModel.intercept)
 - 주어진 샘플들 사이에 존재하는 패턴을 예측 가능한 규칙들의 조합으로 나타내는 알고리즘
 - 과적합 방지 필요
 
-
-
 #### 하이퍼파라미터
 - maxDepth(= max_depth) : 의사결정 나무 최대 깊이 지정 : 과적합 방지
 - maxBins : 연속형 변수를 범주형 변수로 변환할시 binning의 최대 갯수 / 클수록 세분화된 분석 가능 
@@ -142,5 +140,95 @@ predictionCol: prediction column name. (default: prediction)
 probabilityCol: Column name for predicted class conditional probabilities. Note: Not all models output well-calibrated probability estimates! These probabilities should be treated as confidences, not precise probabilities. (default: probability)
 rawPredictionCol: raw prediction (a.k.a. confidence) column name. (default: rawPrediction)
 seed: random seed. (default: 956191873026065186)
+</code>
+</pre>
+
+
+### 26.6 랜덤포레스트 & 그래디언트 부스티드 트리
+- Tree 계열 알고리즘 
+- 두 알고리즘 모두 앙상블 기법이지만 RF는 각 트리의 출력을 평균하여 사용하고, GBT는 각각의 트리에 가중치가 부여됨
+- Spark에서 GBT는 Binary Classification만 지원
+
+#### RF 하이퍼파라미터
+- numTrees(=n_estimators) : 학습 트리 개수
+- featureSubsetStrategy(=max_features)
+  - RF의 가장 큰 특징은, feature를 랜덤샘플링하여 트리들 간의 correlation을 줄이는 것인데, 이 개별 트리 subset의 후보 feature를 몇 개까지 사용할 것인가를 선택
+  - auto / all / sqrt / log2 / n 값 지정
+    - 0과 1 사이의 n (ex. n=0.5) subset을 만들 때 총 feature의 0.5배수만 사용하여 개별 트리를 생성
+- categoricalFeatureInfo 
+- minInfoGain(=min_impurity_decrease)
+- minInstancesPerNode(=min_sample_leat)
+- subsamplingRate 
+- maxBins
+- impurity
+- seed
+
+#### GBT only 하이퍼파라미터
+- lossType(=loss) : 최적화 loss function / 현재 logistic loss만 지원
+- maxIter(n_estimators)
+- stepsize(=learning_rate)
+
+#### RF & GBT 학습 파라미터
+- checkpointInterval (학습 파라미터)
+
+#### RF & GBT input & output columns
+- input params
+  - labelCol : 예측할 label feature 지정
+  - featuresCol : feature vector
+- output 
+  - predictionCol : 예측된 label
+  - rawPredictionCol : 각 라벨에 대한 예측 확률 값 -> 현재 GBT에선 지원 안됨 
+  - probabilityCol : 각 라벨에 대한 예측 확률 값을 normalized한 값 -> 현재 GBT에선 지원 안됨 
+
+
+<pre>
+<code>
+from pyspark.ml.classification import RandomForestClassifier
+rfClassifier = RandomForestClassifier()
+print(rfClassifier.explainParams())
+trainedModel = rfClassifier.fit(bInput)
+
+## Results
+featuresCol: features column name. (default: features)
+impurity: Criterion used for information gain calculation (case-insensitive). Supported options: entropy, gini (default: gini)
+labelCol: label column name. (default: label)
+maxBins: Max number of bins for discretizing continuous features.  Must be >=2 and >= number of categories for any categorical feature. (default: 32)
+maxDepth: Maximum depth of the tree. (>= 0) E.g., depth 0 means 1 leaf node; depth 1 means 1 internal node + 2 leaf nodes. (default: 5)
+maxMemoryInMB: Maximum memory in MB allocated to histogram aggregation. If too small, then 1 node will be split per iteration, and its aggregates may exceed this size. (default: 256)
+minInfoGain: Minimum information gain for a split to be considered at a tree node. (default: 0.0)
+minInstancesPerNode: Minimum number of instances each child must have after split. If a split causes the left or right child to have fewer than minInstancesPerNode, the split will be discarded as invalid. Should be >= 1. (default: 1)
+numTrees: Number of trees to train (>= 1). (default: 20)
+predictionCol: prediction column name. (default: prediction)
+probabilityCol: Column name for predicted class conditional probabilities. Note: Not all models output well-calibrated probability estimates! These probabilities should be treated as confidences, not precise probabilities. (default: probability)
+rawPredictionCol: raw prediction (a.k.a. confidence) column name. (default: rawPrediction)
+seed: random seed. (default: -5387697053847413545)
+subsamplingRate: Fraction of the training data used for learning each decision tree, in range (0, 1]. (default: 1.0)
+</code>
+</pre>
+
+<pre>
+<code>
+from pyspark.ml.classification import GBTClassifier
+gbtClassifier = GBTClassifier()
+print(gbtClassifier.explainParams())
+trainedModel = gbtClassifier.fit(bInput)
+
+## Results
+cacheNodeIds: If false, the algorithm will pass trees to executors to match instances with nodes. If true, the algorithm will cache node IDs for each instance. Caching can speed up training of deeper trees. Users can set how often should the cache be checkpointed or disable it by setting checkpointInterval. (default: False)
+checkpointInterval: set checkpoint interval (>= 1) or disable checkpoint (-1). E.g. 10 means that the cache will get checkpointed every 10 iterations. Note: this setting will be ignored if the checkpoint directory is not set in the SparkContext. (default: 10)
+featureSubsetStrategy: The number of features to consider for splits at each tree node. Supported options: 'auto' (choose automatically for task: If numTrees == 1, set to 'all'. If numTrees > 1 (forest), set to 'sqrt' for classification and to 'onethird' for regression), 'all' (use all features), 'onethird' (use 1/3 of the features), 'sqrt' (use sqrt(number of features)), 'log2' (use log2(number of features)), 'n' (when n is in the range (0, 1.0], use n * number of features. When n is in the range (1, number of features), use n features). default = 'auto' (default: all)
+featuresCol: features column name. (default: features)
+labelCol: label column name. (default: label)
+lossType: Loss function which GBT tries to minimize (case-insensitive). Supported options: logistic (default: logistic)
+maxBins: Max number of bins for discretizing continuous features.  Must be >=2 and >= number of categories for any categorical feature. (default: 32)
+maxDepth: Maximum depth of the tree. (>= 0) E.g., depth 0 means 1 leaf node; depth 1 means 1 internal node + 2 leaf nodes. (default: 5)
+maxIter: max number of iterations (>= 0). (default: 20)
+maxMemoryInMB: Maximum memory in MB allocated to histogram aggregation. If too small, then 1 node will be split per iteration, and its aggregates may exceed this size. (default: 256)
+minInfoGain: Minimum information gain for a split to be considered at a tree node. (default: 0.0)
+minInstancesPerNode: Minimum number of instances each child must have after split. If a split causes the left or right child to have fewer than minInstancesPerNode, the split will be discarded as invalid. Should be >= 1. (default: 1)
+predictionCol: prediction column name. (default: prediction)
+seed: random seed. (default: 3504127614838123891)
+stepSize: Step size (a.k.a. learning rate) in interval (0, 1] for shrinking the contribution of each estimator. (default: 0.1)
+subsamplingRate: Fraction of the training data used for learning each decision tree, in range (0, 1]. (default: 1.0)
 </code>
 </pre>
