@@ -120,11 +120,27 @@ print(lrModel.intercept)
   - 미사용시, -1로 설정
   - checkpointDir(체크포인트 디렉토리 설정) / useNodeIdCache=true 설정 필요
 
-</code>
-</pre>
+<pre>
+<code>
 from pyspark.ml.classification import DecisionTreeClassifier
 dt = DecisionTreeClassifier()
 print dt.explainParams()
 dtModel = dt.fit(bInput)
+
+# Results
+cacheNodeIds: If false, the algorithm will pass trees to executors to match instances with nodes. If true, the algorithm will cache node IDs for each instance. Caching can speed up training of deeper trees. Users can set how often should the cache be checkpointed or disable it by setting checkpointInterval. (default: False)
+checkpointInterval: set checkpoint interval (>= 1) or disable checkpoint (-1). E.g. 10 means that the cache will get checkpointed every 10 iterations. Note: this setting will be ignored if the checkpoint directory is not set in the SparkContext. (default: 10)
+featuresCol: features column name. (default: features)
+impurity: Criterion used for information gain calculation (case-insensitive). Supported options: entropy, gini (default: gini)
+labelCol: label column name. (default: label)
+maxBins: Max number of bins for discretizing continuous features.  Must be >=2 and >= number of categories for any categorical feature. (default: 32)
+maxDepth: Maximum depth of the tree. (>= 0) E.g., depth 0 means 1 leaf node; depth 1 means 1 internal node + 2 leaf nodes. (default: 5)
+maxMemoryInMB: Maximum memory in MB allocated to histogram aggregation. If too small, then 1 node will be split per iteration, and its aggregates may exceed this size. (default: 256)
+minInfoGain: Minimum information gain for a split to be considered at a tree node. (default: 0.0)
+minInstancesPerNode: Minimum number of instances each child must have after split. If a split causes the left or right child to have fewer than minInstancesPerNode, the split will be discarded as invalid. Should be >= 1. (default: 1)
+predictionCol: prediction column name. (default: prediction)
+probabilityCol: Column name for predicted class conditional probabilities. Note: Not all models output well-calibrated probability estimates! These probabilities should be treated as confidences, not precise probabilities. (default: probability)
+rawPredictionCol: raw prediction (a.k.a. confidence) column name. (default: rawPrediction)
+seed: random seed. (default: 956191873026065186)
 </code>
 </pre>
