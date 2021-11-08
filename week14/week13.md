@@ -231,7 +231,7 @@ subsamplingRate: Fraction of the training data used for learning each decision t
 </code>
 </pre>
 
-#### 예시 코드
+### Spark ML 예시 코드
 <pre>
 <code>
 val creditDf = spark.read.format("csv")
