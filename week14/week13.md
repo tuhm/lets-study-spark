@@ -233,6 +233,140 @@ subsamplingRate: Fraction of the training data used for learning each decision t
 </code>
 </pre>
 
+#### 예시 코드
+<pre>
+<code>
+val creditDf = spark.read.format("csv")
+  .option("header", value = true)
+  .option("delimiter", ",")
+  .option("mode", "DROPMALFORMED")
+  .schema(schema)
+  .load(getClass.getResource("/credit.csv").getPath)
+  .cache()
+creditDf.printSchema()
+</code>
+</pre>
+
+#### Add feature columns
+<pre>
+<code>
+## Array column 지정
+val cols = Array("balance", "duration", "history", "purpose", "amount", "savings", "employment", "instPercent", "sexMarried",
+  "guarantors", "residenceDuration", "assets", "age", "concCredit", "apartment", "credits", "occupation", "dependents", "hasPhone",
+  "foreign")
+
+// VectorAssembler to add feature column
+// input columns - cols
+// feature column - features
+
+## Assembler 통해서 위에서 지정한 변수들을 vector로 묶어줌
+val assembler = new VectorAssembler()
+  .setInputCols(cols)
+  .setOutputCol("features")
+val featureDf = assembler.transform(creditDf)
+featureDf.printSchema()
+</code>
+</pre>
+
+#### Add label column
+<pre>
+<code>
+## Stringindexer를 통해 label 지정
+val indexer = new StringIndexer()
+  .setInputCol("creditability")
+  .setOutputCol("label")
+val labelDf = indexer.fit(featureDf).transform(featureDf)
+labelDf.printSchema()
+</code>
+</pre>
+
+#### Build RF Model
+<pre>
+<code>
+val seed = 5043
+val Array(trainingData, testData) = labelDf.randomSplit(Array(0.7, 0.3), seed)
+
+// train Random Forest model with training data set
+val randomForestClassifier = new RandomForestClassifier()
+  .setImpurity("gini")
+  .setMaxDepth(3)
+  .setNumTrees(20)
+  .setFeatureSubsetStrategy("auto")
+  .setSeed(seed)
+val randomForestModel = randomForestClassifier.fit(trainingData)
+
+
+val predictionDf = randomForestModel.transform(testData)
+predictionDf.show(10)
+</code>
+</pre>
+
+#### Build Model with Pipeline
+<pre>
+<code>
+// we run marksDf on the pipeline, so split marksDf
+
+## creditDF -> indexing 하기 이전 spark dataframe
+val Array(pipelineTrainingData, pipelineTestingData) = creditDf.randomSplit(Array(0.7, 0.3), seed)
+
+// VectorAssembler and StringIndexer are transformers
+// LogisticRegression is the estimator
+val stages = Array(assembler, indexer, randomForestClassifier)
+
+// build pipeline
+val pipeline = new Pipeline().setStages(stages)
+val pipelineModel = pipeline.fit(pipelineTrainingData)
+
+// test model with test data
+val pipelinePredictionDf = pipelineModel.transform(pipelineTestingData)
+pipelinePredictionDf.show(10)
+</code>
+</pre>
+
+#### Model Tuning with CrossValidator
+
+<pre>
+<code>
+val paramGrid = new ParamGridBuilder()
+  .addGrid(randomForestClassifier.maxBins, Array(25, 28, 31))
+  .addGrid(randomForestClassifier.maxDepth, Array(4, 6, 8))
+  .addGrid(randomForestClassifier.impurity, Array("entropy", "gini"))
+  .build()
+
+// define cross validation stage to search through the parameters
+// K-Fold cross validation with BinaryClassificationEvaluator
+val cv = new CrossValidator()
+  .setEstimator(pipeline)
+  .setEvaluator(evaluator)
+  .setEstimatorParamMaps(paramGrid)
+  .setNumFolds(5)
+
+// fit will run cross validation and choose the best set of parameters
+// this will take some time to run
+val cvModel = cv.fit(pipelineTrainingData)
+
+// test cross validated model with test data
+val cvPredictionDf = cvModel.transform(pipelineTestingData)
+cvPredictionDf.show(10)
+
+val cvAccuracy = evaluator.evaluate(cvPredictionDf)
+println(cvAccuracy)
+</code>
+</pre>
+
+#### Evaluate Model
+<pre>
+<code>
+val evaluator = new BinaryClassificationEvaluator()
+  .setLabelCol("label")
+  .setMetricName("areaUnderROC")
+  
+val accuracy = evaluator.evaluate(predictionDf)
+println(accuracy)
+</code>
+</pre>
+
+
 #### RF 예시 코드
 <pre>
 <code>
@@ -246,10 +380,14 @@ data = spark.read.format("libsvm").load("data/mllib/sample_libsvm_data.txt")
 
 # Index labels, adding metadata to the label column.
 # Fit on whole dataset to include all labels in index.
+
+## label 인덱싱을 통해 label columns을 label index로 만들어줌 
 labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
 
 # Automatically identify categorical features, and index them.
 # Set maxCategories so features with > 4 distinct values are treated as continuous.
+
+## feature 인덱싱을 통해 feature column을 feature 
 featureIndexer =\
     VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
 
@@ -334,6 +472,8 @@ print(gbtModel)  # summary only
 </code>
 </pre>
 
+## 실제 사용 코드 참고
+https://medium.com/rahasak/random-forest-classifier-with-apache-spark-c63b4a23a7cc
 
 
 ### 26.7 나이브 베이즈
