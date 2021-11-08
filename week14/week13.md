@@ -36,7 +36,7 @@
 
 ### 26.4 로지스틱 회귀
 - 하나의 개별 특징과 특정 가중치를 결합하여 특정 클래스에 속할 확률을 얻는 선형 방법론
-- 
+
 #### 하이퍼파라미터
 <pre>
 <code>
@@ -96,3 +96,35 @@ print(lrModel.intercept)
 #### 예측 파라미터
 - threshold : 클래스 예측 확률 임곗값 (default=0.5)
 - thresholds : 다중 클래스 경우
+
+
+### 26.5 의사결정나무
+- 주어진 샘플들 사이에 존재하는 패턴을 예측 가능한 규칙들의 조합으로 나타내는 알고리즘
+- 과적합 방지 필요
+
+
+
+#### 하이퍼파라미터
+- maxDepth(= max_depth) : 의사결정 나무 최대 깊이 지정 : 과적합 방지
+- maxBins : 연속형 변수를 범주형 변수로 변환할시 binning의 최대 갯수 / 클수록 세분화된 분석 가능 
+- impurity(= criterion) : 나무 분기의 기준이 되는 불순도 측정 기준 
+  - entropy
+  - gini
+  - ref : https://ratsgo.github.io/machine%20learning/2017/03/26/tree/
+- minInfoGain(= min_impurity_decrease) : 나무 분기를 위한 최소 정보 획득 정도 설정 / default : 0
+- minInstancePerNode(= min_sample_leat) : 
+
+#### 학습 파라미터
+- checkpointInterval : 학습 과정 동안 진행되는 모델의 작업 내용 저장, 클러스터 내 특정 노드가 충돌할 경우에도 이전까지 진행된 작업 내용 복구 가능
+  - ex. 10으로 지정할 경우, 모델이 10번 반복될 때마다 checkpoint 생김
+  - 미사용시, -1로 설정
+  - checkpointDir(체크포인트 디렉토리 설정) / useNodeIdCache=true 설정 필요
+
+</code>
+</pre>
+from pyspark.ml.classification import DecisionTreeClassifier
+dt = DecisionTreeClassifier()
+print dt.explainParams()
+dtModel = dt.fit(bInput)
+</code>
+</pre>
