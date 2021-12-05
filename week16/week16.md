@@ -98,3 +98,88 @@ model = gmm.fit(sales)
 
 ### 29.5.4 가우시안 혼합 모델 요약 정보
 - 생성된 클러스터의 정보, 가중치, 평균 및 가우스 혼합의 공분산이 포함되어 있음
+
+## 29.6 잠재 디리클레 할당 (LDA)
+- 텍스트 문서에 대한 토픽 모델링을 수행하는 데 사용되는 계층적 군집화 모델
+- spark에서 온라인 LDA와 기댓값 최대화 (expectation maximixation)
+	- 온라인 LDA는 샘플 데이터가 많을 경우, 기댓값 최대화는 어휘 수가 많은 경우에 적합
+- [URL](http://bigdata.emforce.co.kr/index.php/2020072401/)
+
+### 29.6.1 모델 하이퍼파라미터
+- k : 입력된 데이터로부터 최종적으로 추론할 총 주제 수
+- docConcentration : = alpha, 문서가 가지는 주제 분포의 사전 추정치
+	- 디리클레 분포 파라미터
+	- 이 값이 클수록 편평화 (일반화) 된다는 의미
+	- 문서들의 토픽 분포를 얼마나 밀집되게 할 것인지 
+	- ![alpha](./img/alpha_dist.png)
+- topicConcentration : = beta, 주제가 가지는 단어 분포의 사전 추정치
+	- 문서내 단어들의 토픽 분포를 얼마나 밀집되게 할 것인지
+
+### 29.6.2 학습 파라미터
+- maxIter : LDA를 수행할 총 반복 횟수
+- optimizer : LDA 모델을 학습시킬 알고리즘, EM 또는 온라인 학습 최적화
+- learningDecay : 지수적 감쇠율
+- learningOffset : 초기 반복 수행 횟수
+- optimizeDocConcentration : docConcentration이 최적화될지 여부
+- subsamplingRate : 각 반복 수행에서 말뭉치 샘플링의 비율
+- seed : Random Seed
+- checkpointInterval : 체크포인트 기능
+
+### 29.6.3 예측 파라미터
+- topicDistributionCol : 각 문서의 주제 혼합 분포의 결과
+
+### 29.6.4 실습 예제
+```python
+from pyspark.ml.feature import Tokenizer, CountVectorizer
+tkn = Tokenizer().setInputCol("Description").setOutputCol("DescOut")
+tokenized = tkn.transform(sales.drop("features"))
+cv = CountVectorizer()\
+  .setInputCol("DescOut")\
+  .setOutputCol("features")\
+  .setVocabSize(500)\
+  .setMinTF(0)\
+  .setMinDF(0)\
+  .setBinary(True)
+cvFitted = cv.fit(tokenized)
+prepped = cvFitted.transform(tokenized)
+
+from pyspark.ml.clustering import LDA
+lda = LDA().setK(10).setMaxIter(5)
+print lda.explainParams()
+model = lda.fit(prepped)
+
+model.describeTopics(3).show()
+cvFitted.vocabulary
+```
+- 로그 우도 및 복잡도 (perplexity)를 도출할 수 있음
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
