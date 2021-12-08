@@ -1,10 +1,10 @@
 # 딥러닝
+이 장에서는 스파크에 내장된 패키지 보다는 스파크에 활용할 수 있는 딥러닝 관련 외부 라이브러리의 엄청난 혁신에 중점을 두고 살펴볼 예정이며 일반적인 (과거, 2018기준) 내용을 다룰 예정입니다.
 
-이 장에서는 스파크에 내장된 패키지 보다는 스파크에 활용할 수 있는 딥러닝 관련 외부 라이브러리의 엄청난 혁신에 중점을 두고 살펴볼 예정
-
-31.1 딥러닝이란
+## 31.1 딥러닝이란
 - 신경망이란 가중치와 활성화 함수를 가진 노드로 구성된 그래프 
 - 신경망의 최종 목표는 네트워크 상의 각 노드 사이의 연결과 그에 대한 가중치 및 각 노드의 값을 적절히 조정하여 어떤 값이 입력 되었을 때 특정한 출력값과 연관 시킬 수 있도록 네트워크를 학습시키는 것
+![신경망](https://user-images.githubusercontent.com/61487762/145203716-96c59c45-dc8b-43f0-acaf-c81c0d293a02.JPG)
 
 31.2 스파크에서 딥러닝을 사용하는 방법
 - 추론/ 특징 생성 & 전이학습 / 모델학습
@@ -62,7 +62,8 @@
 31.4.1 설정하기
 
 31.4.2 이미지와 Data Frame
-
+<pre>
+<code>
 from pyspark.ml.image import ImageSchema
 img_dir = '/data/deep-learning-images/'
 sample_img_dir = img_dir + "/sample"
@@ -77,6 +78,9 @@ root
  |    |-- nChannels: integer (nullable = false)
  |    |-- mode: integer (nullable = false)
  |    |-- data: binary (nullable = false)
+</code>
+</pre>
+
 
 31.4.3 전이 학습
 
