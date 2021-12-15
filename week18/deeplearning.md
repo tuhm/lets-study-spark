@@ -65,6 +65,7 @@ with tf.Graph().as_default() as g:
 ### 31.3.4 TensorFlowOn Spark 
 - 야후에서 배포
 - 텐서플로 모델을 병렬로 학습시키는데 사용하는 라이브러리
+- 딥러닝 프레임워크 TensorFlow의 주요 기능 과 Apache Spark 및 Apache Hadoop과 같은 대규모 데이터 프레임워크를 결합하여 TensorFlowOnSpark는 GPU 및 CPU 서버 클러스터에서 분산된 딥러닝을 가능
 - Spark job 내에서 텐서플로의 분산 모드를 실행 시키고, 스파크 RDD 또는 DataFrame 데이터를 텐서플로 잡에 자동으로 공급
 
 ### 31.3.5 DeepLearning4J
@@ -72,10 +73,12 @@ with tf.Graph().as_default() as g:
 - JVM용으로 설계되어 파이썬을 개발 프로세스에 추가 하지 않으려는 사용자 그룹에 편의성 제공
 
 ### 31.3.6 딥러닝 파이프라인
+- Apache Spark의 ML 파이프라인 + 모델 배포를 위해 Spark DataFrame, SQL을 기반
 - 딥러닝 기능을 스파크의 ML 파이프라인 API에 통합시킨 데이터브릭스의 오픈소스 패키지
 - 딥러닝 프레임워크를 표준 스파크 API 통합하여 사용하기 쉽게 만듬
 - 모든 연산을 분산 처리
 - from sparkdl import DeepImageFeaturizer 
+- 참고 : http://www.nextobe.com/2020/05/14/deep-learning-pipelines/
 
 ## 31.4 예제
 - 딥러닝 파이프라인에는
@@ -110,6 +113,7 @@ root
 - "DeepImageFeatureizer" 라는 변환자를 활용. 이미지 패턴을 식별하는데 사용되는 강력한 신경망인 인셉션이라는 사전학습 된 모델을 활용. 
 - 이 라이브러리를 통해 우리 데이터에 맞게 수정 (전이학습)
 - 코드 실습
+![딥러닝3](https://user-images.githubusercontent.com/61487762/146179645-26ead8b0-8f06-41df-8b30-76294abf8c9f.JPG)
 <pre>
 <code>
 from pyspark.ml.image import ImageSchema
@@ -139,7 +143,7 @@ p_model = p.fit(train_df)
 
 ### 31.4.4 인기 있는 표준 모델 사용하기
 - 딥러닝 파이프라인은 케라스에 포함된 다양한 표준모델을 지원
-- 예시
+- 예시 (modelName="InceptionV3")
 <pre>
 <code>
 from pyspark.ml.image import ImageSchema
@@ -159,6 +163,12 @@ from keras.applications import InceptionV3
 from sparkdl.udf.keras_image_model import registerKerasImageUDF
 from keras.applications import InceptionV3
 registerKerasImageUDF("my_keras_inception_udf", InceptionV3(weights="imagenet"))
+</code>
+</pre>
+<pre>
+<code>
+SELECT image, img_classify(image) label FROM my_keras_inception_udf
+WHERE contains(label, “Chihuahua”)
 </code>
 </pre>
 
